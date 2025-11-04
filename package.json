@@ -1,0 +1,22 @@
+{
+  "name": "quiz-scraper",
+  "version": "1.0.0",
+  "description": "DOM scraper for extracting quiz questions and answers",
+  "main": "scraper.js",
+  "scripts": {
+    "scrape": "node scraper.js",
+    "scrape:url": "node scraper.js --url"
+  },
+  "keywords": [
+    "scraper",
+    "playwright",
+    "quiz",
+    "dom"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.40.0",
+    "axios": "^1.6.0"
+  }
+}
