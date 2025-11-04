@@ -8,8 +8,78 @@
 
 const playwright = require('playwright');
 const axios = require('axios');
+const { URL } = require('url');
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
+const BACKEND_API_KEY = process.env.BACKEND_API_KEY; // API key for backend authentication
+
+// Security: URL Whitelist - Only allow specific domains
+const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS
+  ? process.env.ALLOWED_DOMAINS.split(',').map(domain => domain.trim())
+  : ['example.com', 'quizplatform.com', 'localhost']; // Default whitelist
+
+// Private IP ranges to block (RFC 1918, RFC 4193, RFC 3927)
+const PRIVATE_IP_RANGES = [
+  /^10\./,                          // 10.0.0.0/8
+  /^172\.(1[6-9]|2[0-9]|3[0-1])\./,// 172.16.0.0/12
+  /^192\.168\./,                    // 192.168.0.0/16
+  /^127\./,                         // 127.0.0.0/8 (localhost)
+  /^169\.254\./,                    // 169.254.0.0/16 (link-local)
+  /^fc00:/,                         // fc00::/7 (IPv6 ULA)
+  /^fe80:/,                         // fe80::/10 (IPv6 link-local)
+  /^::1$/,                          // ::1 (IPv6 localhost)
+  /^localhost$/i
+];
+
+/**
+ * Validate URL for security
+ * Prevents SSRF attacks by blocking internal IPs and enforcing whitelist
+ * @param {string} urlString - URL to validate
+ * @returns {boolean} True if URL is safe
+ * @throws {Error} If URL is invalid or unsafe
+ */
+function validateUrl(urlString) {
+  if (!urlString || typeof urlString !== 'string') {
+    throw new Error('URL must be a non-empty string');
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(urlString);
+  } catch (error) {
+    throw new Error(`Invalid URL format: ${error.message}`);
+  }
+
+  // Only allow http and https protocols
+  if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+    throw new Error(`Unsupported protocol: ${parsedUrl.protocol}. Only http and https are allowed.`);
+  }
+
+  // Check if hostname is an IP address
+  const hostname = parsedUrl.hostname;
+
+  // Block private IP addresses
+  for (const pattern of PRIVATE_IP_RANGES) {
+    if (pattern.test(hostname)) {
+      throw new Error(`Access to private/internal IP addresses is not allowed: ${hostname}`);
+    }
+  }
+
+  // Enforce domain whitelist
+  const isWhitelisted = ALLOWED_DOMAINS.some(allowedDomain => {
+    // Check exact match or subdomain
+    return hostname === allowedDomain || hostname.endsWith(`.${allowedDomain}`);
+  });
+
+  if (!isWhitelisted) {
+    throw new Error(
+      `Domain not whitelisted: ${hostname}. ` +
+      `Allowed domains: ${ALLOWED_DOMAINS.join(', ')}`
+    );
+  }
+
+  return true;
+}
 
 /**
  * Scrape questions and answers from webpage
@@ -20,13 +90,23 @@ async function scrapeQuestions(url) {
   let browser;
 
   try {
+    // Validate URL if provided
+    if (url) {
+      console.log(`🔒 Validating URL: ${url}`);
+      validateUrl(url);
+      console.log('✓ URL validation passed');
+    }
+
     // Launch browser and connect to page
     browser = await playwright.chromium.launch();
     const context = await browser.createContext();
     const page = await context.newPage();
 
     if (url) {
-      await page.goto(url, { waitUntil: 'networkidle' });
+      await page.goto(url, {
+        waitUntil: 'networkidle',
+        timeout: 30000 // 30 second timeout
+      });
     } else {
       console.log('No URL provided. Scraper will try to analyze current page content.');
       // In real usage, would connect to active browser tab
@@ -147,14 +227,24 @@ async function sendToBackend(questions) {
   try {
     console.log(`\n📤 Sending ${questions.length} questions to backend...`);
 
+    // Prepare headers with API key if configured
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (BACKEND_API_KEY) {
+      headers['X-API-Key'] = BACKEND_API_KEY;
+      console.log('🔑 Using API key for authentication');
+    } else {
+      console.warn('⚠️  No API key configured. Request may be rejected by backend.');
+    }
+
     const response = await axios.post(`${BACKEND_URL}/api/analyze`, {
       questions: questions,
       timestamp: new Date().toISOString()
     }, {
       timeout: 30000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: headers
     });
 
     console.log('✓ Backend response received');
@@ -218,4 +308,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { scrapeQuestions, sendToBackend };
+module.exports = { scrapeQuestions, sendToBackend, validateUrl };

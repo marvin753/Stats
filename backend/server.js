@@ -11,6 +11,7 @@ const cors = require('cors');
 const axios = require('axios');
 const WebSocket = require('ws');
 const http = require('http');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const server = http.createServer(app);
@@ -21,13 +22,140 @@ const PORT = process.env.BACKEND_PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
 const STATS_APP_URL = process.env.STATS_APP_URL || 'http://localhost:8080';
+const API_KEY = process.env.API_KEY; // Backend API key for authentication
+
+// Security: Parse allowed origins from environment variable
+const CORS_ALLOWED_ORIGINS = process.env.CORS_ALLOWED_ORIGINS
+  ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:8080', 'http://localhost:3000'];
+
+// CORS Configuration - Restrict to specific origins
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (CORS_ALLOWED_ORIGINS.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`🚫 Blocked CORS request from unauthorized origin: ${origin}`);
+      callback(new Error('Not allowed by CORS policy'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
 // Middleware
-app.use(express.json());
-app.use(cors());
+app.use(express.json({ limit: '10mb' })); // Limit payload size
+app.use(cors(corsOptions));
 
 // Store connected WebSocket clients
 const clients = new Set();
+
+/**
+ * API Key Authentication Middleware
+ * Validates X-API-Key header against environment variable
+ */
+function authenticateApiKey(req, res, next) {
+  // Skip authentication for health check and root endpoint
+  if (req.path === '/health' || req.path === '/') {
+    return next();
+  }
+
+  const providedKey = req.headers['x-api-key'];
+
+  // If API_KEY is not configured, warn but allow (for development)
+  if (!API_KEY) {
+    console.warn('⚠️  WARNING: API_KEY not configured. All requests allowed (INSECURE)');
+    return next();
+  }
+
+  // Validate API key
+  if (!providedKey) {
+    console.warn('🚫 Authentication failed: No API key provided');
+    return res.status(401).json({
+      error: 'Authentication required',
+      message: 'X-API-Key header is missing'
+    });
+  }
+
+  // Use timing-safe comparison to prevent timing attacks
+  const providedBuffer = Buffer.from(providedKey);
+  const keyBuffer = Buffer.from(API_KEY);
+
+  if (providedBuffer.length !== keyBuffer.length) {
+    console.warn('🚫 Authentication failed: Invalid API key');
+    return res.status(403).json({
+      error: 'Authentication failed',
+      message: 'Invalid API key'
+    });
+  }
+
+  // Constant-time comparison
+  const isValid = providedBuffer.compare(keyBuffer) === 0;
+
+  if (!isValid) {
+    console.warn('🚫 Authentication failed: Invalid API key');
+    return res.status(403).json({
+      error: 'Authentication failed',
+      message: 'Invalid API key'
+    });
+  }
+
+  // Authentication successful
+  next();
+}
+
+// Apply authentication middleware to all routes
+app.use(authenticateApiKey);
+
+/**
+ * Rate Limiting Configuration
+ * Protects against API abuse and DoS attacks
+ */
+
+// General rate limiter for all endpoints
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests',
+    message: 'Rate limit exceeded. Please try again later.'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  handler: (req, res) => {
+    console.warn(`⚠️  Rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: 'Too many requests',
+      message: 'Rate limit exceeded. Please try again later.',
+      retryAfter: req.rateLimit.resetTime
+    });
+  }
+});
+
+// Strict rate limiter for OpenAI API endpoint (more expensive)
+const openaiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // Limit each IP to 10 requests per minute
+  skipSuccessfulRequests: false,
+  message: {
+    error: 'Too many analysis requests',
+    message: 'Please wait before analyzing more quizzes.'
+  },
+  handler: (req, res) => {
+    console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: 'Too many analysis requests',
+      message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+      retryAfter: Math.ceil((req.rateLimit.resetTime - Date.now()) / 1000)
+    });
+  }
+});
+
+// Apply general rate limiter to all routes
+app.use(generalLimiter);
 
 /**
  * Call OpenAI API to get correct answer indices
@@ -145,8 +273,9 @@ function broadcastToClients(data) {
 /**
  * POST /api/analyze
  * Receive scraped questions, analyze with OpenAI, send to Swift
+ * Rate limited to prevent OpenAI API abuse
  */
-app.post('/api/analyze', async (req, res) => {
+app.post('/api/analyze', openaiLimiter, async (req, res) => {
   try {
     const { questions, timestamp } = req.body;
 
@@ -224,7 +353,12 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    openai_configured: !!OPENAI_API_KEY
+    openai_configured: !!OPENAI_API_KEY,
+    api_key_configured: !!API_KEY,
+    security: {
+      cors_enabled: true,
+      authentication_enabled: !!API_KEY
+    }
   });
 });
 

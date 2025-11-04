@@ -9,6 +9,7 @@
 
 import Cocoa
 import Combine
+import UserNotifications
 
 class QuizIntegrationManager: NSObject, ObservableObject {
 
@@ -40,6 +41,9 @@ class QuizIntegrationManager: NSObject, ObservableObject {
     func initialize() {
         print("\n🎬 Initializing Quiz Integration Manager...")
 
+        // Request notification permissions
+        requestNotificationPermissions()
+
         // Set up delegates
         httpServer.delegate = self
         keyboardManager.delegate = self
@@ -61,6 +65,51 @@ class QuizIntegrationManager: NSObject, ObservableObject {
 
         isEnabled = true
         print("✅ Quiz Integration Manager initialized")
+    }
+
+    /**
+     * Request notification permissions (required for UserNotifications framework)
+     */
+    private func requestNotificationPermissions() {
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if granted {
+                print("✓ Notification permissions granted")
+            } else if let error = error {
+                print("⚠️  Notification permission error: \(error.localizedDescription)")
+            } else {
+                print("⚠️  Notification permissions denied")
+            }
+        }
+    }
+
+    /**
+     * Show notification using modern UserNotifications framework
+     * @param title - Notification title
+     * @param body - Notification body text
+     */
+    private func showNotification(title: String, body: String) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        // Create a unique identifier for the notification
+        let identifier = UUID().uuidString
+
+        // Create trigger (immediate delivery)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+
+        // Create request
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+
+        // Schedule notification
+        let center = UNUserNotificationCenter.current()
+        center.add(request) { error in
+            if let error = error {
+                print("⚠️  Failed to show notification: \(error.localizedDescription)")
+            }
+        }
     }
 
     /**
@@ -111,12 +160,11 @@ extension QuizIntegrationManager: KeyboardShortcutDelegate {
         print("⌨️  Keyboard shortcut triggered!")
         print("🚀 Triggering scraper and quiz workflow...")
 
-        // This should trigger the scraper script
-        // For now, we'll show a notification
-        let notification = NSUserNotification()
-        notification.title = "Quiz Scraper"
-        notification.informativeText = "Starting webpage analysis..."
-        NSUserNotificationCenter.default.deliver(notification)
+        // Show notification using modern UserNotifications framework
+        showNotification(
+            title: "Quiz Scraper",
+            body: "Starting webpage analysis..."
+        )
 
         // The backend will send answers via HTTP to QuizHTTPServer
         // which will then trigger triggerQuiz()

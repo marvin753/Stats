@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Scraper - Security Enhanced</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .input-group input.valid {
+      border-color: #00aa00;
+    }
+
+    .input-group input.invalid {
+      border-color: #cc0000;
+    }
+
+    .validation-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+    }
+
+    .validation-messages {
+      margin-top: 8px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #e0e0e0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .loading.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-container {
+      display: none;
+      margin-bottom: 20px;
+    }
+
+    .error-container.active {
+      display: block;
+    }
+
+    .rate-limit-info {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .rate-limit-item {
+      text-align: center;
+    }
+
+    .rate-limit-label {
+      color: #666;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .rate-limit-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .rate-limit-value.warning {
+      color: #ff9900;
+    }
+
+    .rate-limit-value.error {
+      color: #cc0000;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-badge.success {
+      background: #00880010;
+      color: #008800;
+    }
+
+    .status-badge.error {
+      background: #cc000010;
+      color: #cc0000;
+    }
+
+    .status-badge.warning {
+      background: #ff990010;
+      color: #ff9900;
+    }
+
+    .results-container {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .results-container.active {
+      display: block;
+    }
+
+    .question-item {
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .question-text {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .answer-item {
+      padding: 8px 12px;
+      margin: 4px 0;
+      background: white;
+      border-radius: 6px;
+      border: 2px solid transparent;
+    }
+
+    .answer-item.correct {
+      border-color: #00aa00;
+      background: #00aa0010;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #0066cc;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #004499;
+    }
+
+    .settings-link {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+
+    .settings-link a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .settings-link a:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="settings-link">
+      <a href="#" id="settingsLink">⚙️ Settings</a>
+    </div>
+
+    <div class="header">
+      <h1>🎯 Quiz Scraper</h1>
+      <p>AI-powered quiz analysis with enterprise-grade security</p>
+    </div>
+
+    <!-- API Key Setup Card -->
+    <div class="card" id="apiKeyCard">
+      <div class="section-title">
+        🔐 API Key Configuration
+      </div>
+
+      <div class="info-box">
+        An API key is required to use the quiz analysis feature. Your API key is stored securely in your browser session.
+      </div>
+
+      <div class="input-group">
+        <label for="apiKeyInput">API Key</label>
+        <div class="input-wrapper">
+          <input
+            type="password"
+            id="apiKeyInput"
+            placeholder="Enter your API key"
+            autocomplete="off"
+          />
+          <span class="validation-icon" id="apiKeyIcon"></span>
+        </div>
+        <div class="validation-messages" id="apiKeyValidation"></div>
+      </div>
+
+      <button class="btn" id="saveApiKeyBtn">Save API Key</button>
+      <div style="margin-top: 10px; text-align: center; font-size: 12px; color: #666;">
+        Don't have an API key? Contact your administrator.
+      </div>
+    </div>
+
+    <!-- Main Scraper Card -->
+    <div class="card" id="scraperCard" style="display: none;">
+      <div class="section-title">
+        🔍 URL Analysis
+        <span class="status-badge success" id="authStatus">Authenticated</span>
+      </div>
+
+      <!-- Rate Limit Info -->
+      <div class="rate-limit-info">
+        <div class="rate-limit-item">
+          <div class="rate-limit-label">Remaining Requests</div>
+          <div class="rate-limit-value" id="rateLimitRemaining">10</div>
+        </div>
+        <div class="rate-limit-item">
+          <div class="rate-limit-label">Reset In</div>
+          <div class="rate-limit-value" id="rateLimitReset">60s</div>
+        </div>
+        <div class="rate-limit-item">
+          <div class="rate-limit-label">Total Used</div>
+          <div class="rate-limit-value" id="rateLimitUsed">0</div>
+        </div>
+      </div>
+
+      <!-- URL Input -->
+      <div class="input-group">
+        <label for="urlInput">Quiz URL</label>
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="urlInput"
+            placeholder="https://example.com/quiz"
+          />
+          <span class="validation-icon" id="urlIcon"></span>
+        </div>
+        <div class="validation-messages" id="urlValidation"></div>
+        <div style="margin-top: 8px; font-size: 12px; color: #666;">
+          Allowed domains: <span id="allowedDomains"></span>
+        </div>
+      </div>
+
+      <!-- Error Display -->
+      <div class="error-container" id="errorContainer"></div>
+
+      <!-- Loading State -->
+      <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        <span id="loadingText">Analyzing quiz...</span>
+      </div>
+
+      <!-- Action Buttons -->
+      <button class="btn" id="analyzeBtn" disabled>Analyze Quiz</button>
+      <button class="btn btn-secondary" id="clearBtn" style="margin-top: 10px;">Clear</button>
+
+      <!-- Results -->
+      <div class="results-container" id="resultsContainer">
+        <div class="section-title">✅ Analysis Results</div>
+        <div id="resultsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script type="module">
+    import config from './config.js';
+    import apiClient from './api-client.js';
+    import ErrorHandler from './error-handler.js';
+    import UrlValidator from './url-validator.js';
+
+    // DOM Elements
+    const elements = {
+      apiKeyCard: document.getElementById('apiKeyCard'),
+      scraperCard: document.getElementById('scraperCard'),
+      apiKeyInput: document.getElementById('apiKeyInput'),
+      apiKeyIcon: document.getElementById('apiKeyIcon'),
+      apiKeyValidation: document.getElementById('apiKeyValidation'),
+      saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
+      urlInput: document.getElementById('urlInput'),
+      urlIcon: document.getElementById('urlIcon'),
+      urlValidation: document.getElementById('urlValidation'),
+      allowedDomains: document.getElementById('allowedDomains'),
+      errorContainer: document.getElementById('errorContainer'),
+      loadingIndicator: document.getElementById('loadingIndicator'),
+      loadingText: document.getElementById('loadingText'),
+      analyzeBtn: document.getElementById('analyzeBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      resultsContainer: document.getElementById('resultsContainer'),
+      resultsContent: document.getElementById('resultsContent'),
+      rateLimitRemaining: document.getElementById('rateLimitRemaining'),
+      rateLimitReset: document.getElementById('rateLimitReset'),
+      rateLimitUsed: document.getElementById('rateLimitUsed'),
+      authStatus: document.getElementById('authStatus')
+    };
+
+    // Initialize
+    function init() {
+      // Check if API key is already configured
+      if (config.hasApiKey()) {
+        showScraperCard();
+      }
+
+      // Display allowed domains
+      elements.allowedDomains.textContent = config.URL_VALIDATION_CONFIG.ALLOWED_DOMAINS.join(', ');
+
+      // Event listeners
+      elements.apiKeyInput.addEventListener('input', validateApiKey);
+      elements.saveApiKeyBtn.addEventListener('click', saveApiKey);
+      elements.urlInput.addEventListener('input', validateUrl);
+      elements.analyzeBtn.addEventListener('click', analyzeQuiz);
+      elements.clearBtn.addEventListener('click', clearForm);
+
+      // Update rate limit info periodically
+      setInterval(updateRateLimitInfo, 1000);
+      updateRateLimitInfo();
+    }
+
+    // Validate API key
+    function validateApiKey() {
+      const key = elements.apiKeyInput.value.trim();
+
+      if (!key) {
+        elements.apiKeyIcon.textContent = '';
+        elements.apiKeyValidation.innerHTML = '';
+        return;
+      }
+
+      if (config.VALIDATION.isValidApiKeyFormat(key)) {
+        elements.apiKeyIcon.textContent = '✓';
+        elements.apiKeyIcon.style.color = '#00aa00';
+        elements.apiKeyInput.classList.add('valid');
+        elements.apiKeyInput.classList.remove('invalid');
+        elements.apiKeyValidation.innerHTML = '<div style="color: #00aa00; font-size: 12px;">✓ Valid API key format</div>';
+      } else {
+        elements.apiKeyIcon.textContent = '✗';
+        elements.apiKeyIcon.style.color = '#cc0000';
+        elements.apiKeyInput.classList.add('invalid');
+        elements.apiKeyInput.classList.remove('valid');
+        elements.apiKeyValidation.innerHTML = '<div style="color: #cc0000; font-size: 12px;">✗ Invalid API key format</div>';
+      }
+    }
+
+    // Save API key
+    function saveApiKey() {
+      const key = elements.apiKeyInput.value.trim();
+
+      if (config.setApiKey(key)) {
+        showScraperCard();
+      } else {
+        alert('Invalid API key format. Please check and try again.');
+      }
+    }
+
+    // Show scraper card
+    function showScraperCard() {
+      elements.apiKeyCard.style.display = 'none';
+      elements.scraperCard.style.display = 'block';
+    }
+
+    // Validate URL
+    function validateUrl() {
+      const url = elements.urlInput.value.trim();
+
+      if (!url) {
+        elements.urlIcon.textContent = '';
+        elements.urlValidation.innerHTML = '';
+        elements.analyzeBtn.disabled = true;
+        return;
+      }
+
+      const result = UrlValidator.validateLive(url);
+
+      if (result.isValid) {
+        elements.urlIcon.textContent = '✓';
+        elements.urlIcon.style.color = '#00aa00';
+        elements.urlInput.classList.add('valid');
+        elements.urlInput.classList.remove('invalid');
+        elements.analyzeBtn.disabled = false;
+      } else {
+        elements.urlIcon.textContent = '✗';
+        elements.urlIcon.style.color = '#cc0000';
+        elements.urlInput.classList.add('invalid');
+        elements.urlInput.classList.remove('valid');
+        elements.analyzeBtn.disabled = true;
+      }
+
+      elements.urlValidation.innerHTML = UrlValidator.createValidationMessageHtml(result);
+    }
+
+    // Analyze quiz
+    async function analyzeQuiz() {
+      const url = elements.urlInput.value.trim();
+
+      // Clear previous results
+      ErrorHandler.clearErrors(elements.errorContainer);
+      elements.resultsContainer.classList.remove('active');
+
+      // Validate URL
+      try {
+        UrlValidator.validateOrThrow(url);
+      } catch (error) {
+        ErrorHandler.displayError(error, elements.errorContainer);
+        elements.errorContainer.classList.add('active');
+        return;
+      }
+
+      // Show loading
+      elements.loadingIndicator.classList.add('active');
+      elements.analyzeBtn.disabled = true;
+
+      try {
+        // In a real implementation, you would scrape the URL first
+        // For this demo, we'll use mock data
+        const mockQuestions = [
+          {
+            question: "What is the capital of France?",
+            answers: ["London", "Berlin", "Paris", "Madrid"]
+          }
+        ];
+
+        // Analyze questions
+        elements.loadingText.textContent = 'Analyzing with AI...';
+        const result = await apiClient.analyzeQuestions(mockQuestions);
+
+        // Display results
+        displayResults(mockQuestions, result.answers);
+        elements.resultsContainer.classList.add('active');
+
+        // Update rate limit info
+        updateRateLimitInfo();
+
+      } catch (error) {
+        ErrorHandler.displayError(error, elements.errorContainer);
+        elements.errorContainer.classList.add('active');
+      } finally {
+        elements.loadingIndicator.classList.remove('active');
+        elements.analyzeBtn.disabled = false;
+      }
+    }
+
+    // Display results
+    function displayResults(questions, answers) {
+      let html = '';
+
+      questions.forEach((q, index) => {
+        const correctIndex = answers[index] - 1; // Convert to 0-based
+
+        html += `
+          <div class="question-item">
+            <div class="question-text">${index + 1}. ${q.question}</div>
+            ${q.answers.map((answer, i) => `
+              <div class="answer-item ${i === correctIndex ? 'correct' : ''}">
+                ${i === correctIndex ? '✓ ' : ''}${answer}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      });
+
+      elements.resultsContent.innerHTML = html;
+    }
+
+    // Update rate limit info
+    function updateRateLimitInfo() {
+      const status = apiClient.getRateLimitStatus();
+
+      // Remaining requests
+      elements.rateLimitRemaining.textContent = status.openai.remaining;
+      elements.rateLimitRemaining.className = 'rate-limit-value';
+      if (status.openai.isNearLimit) {
+        elements.rateLimitRemaining.classList.add('warning');
+      }
+      if (status.openai.remaining === 0) {
+        elements.rateLimitRemaining.classList.add('error');
+      }
+
+      // Reset time
+      const resetSeconds = Math.ceil(status.openai.resetIn / 1000);
+      elements.rateLimitReset.textContent = resetSeconds > 0 ? `${resetSeconds}s` : '-';
+
+      // Used requests
+      elements.rateLimitUsed.textContent = status.openai.used;
+    }
+
+    // Clear form
+    function clearForm() {
+      elements.urlInput.value = '';
+      elements.urlIcon.textContent = '';
+      elements.urlValidation.innerHTML = '';
+      elements.urlInput.classList.remove('valid', 'invalid');
+      elements.analyzeBtn.disabled = true;
+      ErrorHandler.clearErrors(elements.errorContainer);
+      elements.errorContainer.classList.remove('active');
+      elements.resultsContainer.classList.remove('active');
+    }
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>
