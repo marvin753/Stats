@@ -27,3 +27,4 @@ out/
 # Dependencies
 package-lock.json
 yarn.lock
+cloned-stats/
