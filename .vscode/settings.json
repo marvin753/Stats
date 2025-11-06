@@ -1,0 +1,45 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[swift]": {
+    "editor.defaultFormatter": "apple.swift-format"
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.DS_Store": true,
+    "**/build": false,
+    "**/.env": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "build": true,
+    ".git": true
+  },
+  "terminal.integrated.defaultProfile.osx": "bash",
+  "terminal.integrated.env.osx": {
+    "NODE_ENV": "development"
+  },
+  "extensions.recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "swift-server.swift-ls",
+    "ms-azuretools.vscode-docker",
+    "oderwat.indent-rainbow",
+    "ms-vscode.makefile-tools"
+  ],
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/**": true,
+    "**/build/**": true
+  }
+}

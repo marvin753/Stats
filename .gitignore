@@ -57,7 +57,14 @@ docker-compose.override.yml
 # ----------------------------------------
 # IDE & Editors
 # ----------------------------------------
-.vscode/
+# Allow VS Code workspace configuration (tasks, launch, settings)
+!.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/README.md
 .idea/
 *.swp
 *.swo
