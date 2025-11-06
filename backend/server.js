@@ -15,7 +15,12 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+
+// Only create WebSocket server if not in test mode
+let wss;
+if (process.env.NODE_ENV !== 'test') {
+  wss = new WebSocket.Server({ server });
+}
 
 // Configuration
 const PORT = process.env.BACKEND_PORT || 3000;
@@ -154,8 +159,10 @@ const openaiLimiter = rateLimit({
   }
 });
 
-// Apply general rate limiter to all routes
-app.use(generalLimiter);
+// Apply general rate limiter to all routes (disabled in test mode)
+if (process.env.NODE_ENV !== 'test') {
+  app.use(generalLimiter);
+}
 
 /**
  * Call OpenAI API to get correct answer indices
@@ -380,38 +387,40 @@ app.get('/', (req, res) => {
 });
 
 /**
- * WebSocket connection handler
+ * WebSocket connection handler (only if WebSocket server exists)
  */
-wss.on('connection', (ws) => {
-  console.log('✓ WebSocket client connected');
-  clients.add(ws);
+if (wss) {
+  wss.on('connection', (ws) => {
+    console.log('✓ WebSocket client connected');
+    clients.add(ws);
 
-  ws.on('message', (message) => {
-    try {
-      const data = JSON.parse(message);
-      console.log('WebSocket message:', data.type);
-    } catch (error) {
-      console.error('WebSocket message parse error:', error.message);
-    }
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message);
+        console.log('WebSocket message:', data.type);
+      } catch (error) {
+        console.error('WebSocket message parse error:', error.message);
+      }
+    });
+
+    ws.on('close', () => {
+      console.log('✓ WebSocket client disconnected');
+      clients.delete(ws);
+    });
+
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error.message);
+      clients.delete(ws);
+    });
+
+    // Send welcome message
+    ws.send(JSON.stringify({
+      type: 'connection',
+      message: 'Connected to Quiz Analysis Backend',
+      timestamp: new Date().toISOString()
+    }));
   });
-
-  ws.on('close', () => {
-    console.log('✓ WebSocket client disconnected');
-    clients.delete(ws);
-  });
-
-  ws.on('error', (error) => {
-    console.error('WebSocket error:', error.message);
-    clients.delete(ws);
-  });
-
-  // Send welcome message
-  ws.send(JSON.stringify({
-    type: 'connection',
-    message: 'Connected to Quiz Analysis Backend',
-    timestamp: new Date().toISOString()
-  }));
-});
+}
 
 /**
  * Error handling middleware
@@ -425,13 +434,15 @@ app.use((err, req, res, next) => {
 });
 
 /**
- * Start server
+ * Start server (only if not in test environment)
  */
-server.listen(PORT, () => {
-  console.log(`\n✅ Backend server running on http://localhost:${PORT}`);
-  console.log(`   OpenAI Model: ${OPENAI_MODEL}`);
-  console.log(`   Stats App URL: ${STATS_APP_URL}`);
-  console.log(`   WebSocket: ws://localhost:${PORT}\n`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`\n✅ Backend server running on http://localhost:${PORT}`);
+    console.log(`   OpenAI Model: ${OPENAI_MODEL}`);
+    console.log(`   Stats App URL: ${STATS_APP_URL}`);
+    console.log(`   WebSocket: ws://localhost:${PORT}\n`);
+  });
+}
 
 module.exports = app;

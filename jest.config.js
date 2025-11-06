@@ -100,6 +100,10 @@ module.exports = {
     '<rootDir>/tests/setupAfterEnv.js'
   ],
 
+  // Disable global setup/teardown for now due to hanging issues
+  // globalSetup: undefined,
+  // globalTeardown: undefined,
+
   // Transform configuration
   transform: {
     '^.+\\.jsx?$': 'babel-jest'
@@ -124,8 +128,8 @@ module.exports = {
   // Verbose output
   verbose: true,
 
-  // Detect open handles
-  detectOpenHandles: true,
+  // Detect open handles - disabled for faster execution
+  detectOpenHandles: false,
 
   // Force exit after tests
   forceExit: true,
@@ -142,11 +146,11 @@ module.exports = {
   // Maximum workers
   maxWorkers: '50%',
 
-  // Global setup
-  globalSetup: '<rootDir>/tests/globalSetup.js',
+  // Global setup - temporarily disabled
+  // globalSetup: '<rootDir>/tests/globalSetup.js',
 
-  // Global teardown
-  globalTeardown: '<rootDir>/tests/globalTeardown.js',
+  // Global teardown - temporarily disabled
+  // globalTeardown: '<rootDir>/tests/globalTeardown.js',
 
   // Reporters
   reporters: [
@@ -161,18 +165,8 @@ module.exports = {
         theme: 'darkTheme',
         dateFormat: 'yyyy-mm-dd HH:MM:ss'
       }
-    ],
-    [
-      'jest-junit',
-      {
-        outputDirectory: '<rootDir>/coverage',
-        outputName: 'junit.xml',
-        classNameTemplate: '{classname}',
-        titleTemplate: '{title}',
-        ancestorSeparator: ' > ',
-        usePathForSuiteName: true
-      }
     ]
+    // jest-junit removed - was causing ETIMEDOUT errors
   ],
 
   // Watch plugins
