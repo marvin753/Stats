@@ -1,0 +1,10 @@
+console.log('1: Starting');
+process.env.NODE_ENV = 'test';
+process.env.OPENAI_API_KEY = 'sk-test';
+process.env.API_KEY = 'test-key';
+console.log('2: Before require');
+const app = require('./backend/server');
+console.log('3: After require');
+console.log('4: App:', typeof app);
+console.log('5: Done');
+process.exit(0);

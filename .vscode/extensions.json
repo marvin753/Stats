@@ -1,0 +1,18 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "swift-server.swift-ls",
+    "ms-azuretools.vscode-docker",
+    "oderwat.indent-rainbow",
+    "ms-vscode.makefile-tools",
+    "firsttris.vscode-jest-runner",
+    "orta.vscode-jest",
+    "wallabyjs.wallaby-vscode",
+    "redhat.vscode-yaml",
+    "eamodio.gitlens",
+    "GitHub.copilot",
+    "Thunder Client",
+    "REST Client"
+  ]
+}
