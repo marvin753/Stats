@@ -168,7 +168,9 @@ extension AppDelegate {
                     updater.download(url, completion: { path in
                         updater.install(path: path) { error in
                             if let error {
-                                showAlert("Error update Stats", error, .critical)
+                                DispatchQueue.main.async {
+                                    showAlert("Error update Stats", error, .critical)
+                                }
                             }
                         }
                     })
@@ -180,23 +182,27 @@ extension AppDelegate {
             
             let center = UNUserNotificationCenter.current()
             center.getNotificationSettings { settings in
-                switch settings.authorizationStatus {
-                case .authorized, .provisional:
-                    self.showUpdateNotification(version: version)
-                case .denied:
-                    self.showUpdateWindow(version: version)
-                case .notDetermined:
-                    center.requestAuthorization(options: [.sound, .alert, .badge], completionHandler: { (_, error) in
-                        if error == nil {
-                            NSApplication.shared.registerForRemoteNotifications()
-                            self.showUpdateNotification(version: version)
-                        } else {
-                            self.showUpdateWindow(version: version)
-                        }
-                    })
-                @unknown default:
-                    self.showUpdateWindow(version: version)
-                    error_msg("unknown notification setting")
+                DispatchQueue.main.async {
+                    switch settings.authorizationStatus {
+                    case .authorized, .provisional:
+                        self.showUpdateNotification(version: version)
+                    case .denied:
+                        self.showUpdateWindow(version: version)
+                    case .notDetermined:
+                        center.requestAuthorization(options: [.sound, .alert, .badge], completionHandler: { (_, error) in
+                            DispatchQueue.main.async {
+                                if error == nil {
+                                    NSApplication.shared.registerForRemoteNotifications()
+                                    self.showUpdateNotification(version: version)
+                                } else {
+                                    self.showUpdateWindow(version: version)
+                                }
+                            }
+                        })
+                    @unknown default:
+                        self.showUpdateWindow(version: version)
+                        error_msg("unknown notification setting")
+                    }
                 }
             }
         }

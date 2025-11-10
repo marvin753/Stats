@@ -207,6 +207,9 @@
 		CE7846DB2EBA55C90007B6A3 /* QuizIntegrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7846D92EBA55C90007B6A3 /* QuizIntegrationManager.swift */; };
 		CE7846DC2EBA55C90007B6A3 /* QuizHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7846D82EBA55C90007B6A3 /* QuizHTTPServer.swift */; };
 		CE7846DD2EBA55C90007B6A3 /* QuizAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7846D72EBA55C90007B6A3 /* QuizAnimationController.swift */; };
+		CE95E6532EC2896F0054DD69 /* ScreenshotCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95E6522EC2896F0054DD69 /* ScreenshotCapture.swift */; };
+		CE95E6552EC289960054DD69 /* ScreenshotStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95E6542EC289960054DD69 /* ScreenshotStateManager.swift */; };
+		CE95E6572EC289B20054DD69 /* VisionAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95E6562EC289B20054DD69 /* VisionAIService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -719,10 +722,13 @@
 		C904AECF255939DB004A9EBC /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CBF35F8F258CF80000B2BA41 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CE47845D298F55F900F564FD /* th */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = th; path = th.lproj/Localizable.strings; sourceTree = "<group>"; };
-		CE7846D62EBA55C90007B6A3 /* KeyboardShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcutManager.swift; sourceTree = "<group>"; };
-		CE7846D72EBA55C90007B6A3 /* QuizAnimationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizAnimationController.swift; sourceTree = "<group>"; };
-		CE7846D82EBA55C90007B6A3 /* QuizHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizHTTPServer.swift; sourceTree = "<group>"; };
-		CE7846D92EBA55C90007B6A3 /* QuizIntegrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizIntegrationManager.swift; sourceTree = "<group>"; };
+		CE7846D62EBA55C90007B6A3 /* KeyboardShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/KeyboardShortcutManager.swift; sourceTree = "<group>"; };
+		CE7846D72EBA55C90007B6A3 /* QuizAnimationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/QuizAnimationController.swift; sourceTree = "<group>"; };
+		CE7846D82EBA55C90007B6A3 /* QuizHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/QuizHTTPServer.swift; sourceTree = "<group>"; };
+		CE7846D92EBA55C90007B6A3 /* QuizIntegrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/QuizIntegrationManager.swift; sourceTree = "<group>"; };
+		CE95E6522EC2896F0054DD69 /* ScreenshotCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/ScreenshotCapture.swift; sourceTree = "<group>"; };
+		CE95E6542EC289960054DD69 /* ScreenshotStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/ScreenshotStateManager.swift; sourceTree = "<group>"; };
+		CE95E6562EC289B20054DD69 /* VisionAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/VisionAIService.swift; sourceTree = "<group>"; };
 		F8A38F83253303A8006D4D81 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		FCBD9253255C7D9900E1621A /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -983,10 +989,6 @@
 			children = (
 				9A1410F5229E721100D29793 /* Stats.app */,
 				9A343527243E26A0006B19F9 /* LaunchAtLogin.app */,
-				CE7846D62EBA55C90007B6A3 /* KeyboardShortcutManager.swift */,
-				CE7846D72EBA55C90007B6A3 /* QuizAnimationController.swift */,
-				CE7846D82EBA55C90007B6A3 /* QuizHTTPServer.swift */,
-				CE7846D92EBA55C90007B6A3 /* QuizIntegrationManager.swift */,
 				9A81C7562449A41400825D92 /* RAM.framework */,
 				9AF9EE0224648751005D2270 /* Disk.framework */,
 				9A3E17CC247A94AF00449CD1 /* Net.framework */,
@@ -1030,7 +1032,7 @@
 				9A28481D2666AB3600EC1F6D /* helpers.swift */,
 				9A28481C2666AB3500EC1F6D /* types.swift */,
 				5C621D812B4770D6004ED7AF /* process.swift */,
-			);
+);
 			path = Kit;
 			sourceTree = "<group>";
 		};
@@ -1242,6 +1244,13 @@
 				9ABFF8F7248BEBCB00C9041A /* Battery */,
 				9A11AAD0266FD77F000C1C05 /* Bluetooth */,
 				5C22299E29CCB3C400F00E69 /* Clock */,
+				CE7846D62EBA55C90007B6A3 /* KeyboardShortcutManager.swift */,
+				CE7846D72EBA55C90007B6A3 /* QuizAnimationController.swift */,
+				CE7846D82EBA55C90007B6A3 /* QuizHTTPServer.swift */,
+				CE7846D92EBA55C90007B6A3 /* QuizIntegrationManager.swift */,
+				CE95E6522EC2896F0054DD69 /* ScreenshotCapture.swift */,
+				CE95E6542EC289960054DD69 /* ScreenshotStateManager.swift */,
+				CE95E6562EC289B20054DD69 /* VisionAIService.swift */,
 			);
 			path = Modules;
 			sourceTree = "<group>";
@@ -2077,6 +2086,9 @@
 			files = (
 				9AABEB7A243FD26200668CB0 /* AppDelegate.swift in Sources */,
 				CE7846DA2EBA55C90007B6A3 /* KeyboardShortcutManager.swift in Sources */,
+				CE95E6552EC289960054DD69 /* ScreenshotStateManager.swift in Sources */,
+				CE95E6572EC289B20054DD69 /* VisionAIService.swift in Sources */,
+				CE95E6532EC2896F0054DD69 /* ScreenshotCapture.swift in Sources */,
 				CE7846DB2EBA55C90007B6A3 /* QuizIntegrationManager.swift in Sources */,
 				CE7846DC2EBA55C90007B6A3 /* QuizHTTPServer.swift in Sources */,
 				CE7846DD2EBA55C90007B6A3 /* QuizAnimationController.swift in Sources */,

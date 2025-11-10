@@ -79,7 +79,7 @@ extension QuizHTTPServer: HTTPServerDelegate {
             }
 
         } catch {
-            print("❌ Error parsing request: \(error.message)")
+            print("❌ Error parsing request: \(error.localizedDescription)")
         }
 
         return HTTPResponse(statusCode: 400, body: "Invalid request format")
@@ -106,7 +106,11 @@ struct HTTPResponse {
     init(statusCode: Int, body: String, headers: [String: String] = [:]) {
         self.statusCode = statusCode
         self.body = body
-        self.headers = ["Content-Type": "application/json"] + headers
+        var combinedHeaders = ["Content-Type": "application/json"]
+        for (key, value) in headers {
+            combinedHeaders[key] = value
+        }
+        self.headers = combinedHeaders
     }
 }
 
@@ -138,7 +142,8 @@ class HTTPServer: NSObject, StreamDelegate {
                 if callbackType == .acceptCallBack {
                     if let data = data {
                         var nativeSocket: CFSocketNativeHandle = 0
-                        (data as NSData).getBytes(&nativeSocket, length: MemoryLayout<CFSocketNativeHandle>.size)
+                        let nsData = NSData(bytes: data, length: MemoryLayout<CFSocketNativeHandle>.size)
+                        nsData.getBytes(&nativeSocket, length: MemoryLayout<CFSocketNativeHandle>.size)
                         self.handleConnection(nativeSocket)
                     }
                 }
@@ -160,7 +165,7 @@ class HTTPServer: NSObject, StreamDelegate {
         addr.sin_len = __uint8_t(MemoryLayout<sockaddr_in>.size)
         addr.sin_family = sa_family_t(AF_INET)
         addr.sin_port = in_port_t(port).bigEndian
-        addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK)
+        addr.sin_addr.s_addr = INADDR_LOOPBACK.bigEndian
 
         let address = NSData(bytes: &addr, length: MemoryLayout<sockaddr_in>.size)
         guard CFSocketSetAddress(socket, address as CFData) == .success else {
@@ -188,14 +193,72 @@ class HTTPServer: NSObject, StreamDelegate {
             let fileHandle = FileHandle(fileDescriptor: nativeSocket)
 
             do {
-                // Read request
-                let data = fileHandle.availableData
-                guard let requestString = String(data: data, encoding: .utf8) else {
+                // Read request - use a buffer and read until we have the full request
+                var buffer = Data()
+                var contentLength: Int? = nil
+                var headerEndIndex: Int? = nil
+
+                // First, read in chunks until we find the header end
+                var attempts = 0
+                while attempts < 20 {
+                    usleep(10000) // 10ms wait
+                    let chunk = fileHandle.availableData
+
+                    if !chunk.isEmpty {
+                        buffer.append(chunk)
+
+                        // Check if we've found the end of headers
+                        if headerEndIndex == nil {
+                            if let requestString = String(data: buffer, encoding: .utf8) {
+                                // Look for header/body separator
+                                if let range = requestString.range(of: "\r\n\r\n") {
+                                    headerEndIndex = requestString.distance(from: requestString.startIndex, to: range.upperBound)
+
+                                    // Try to extract Content-Length from headers
+                                    let headerSection = String(requestString[..<range.lowerBound])
+                                    let lines = headerSection.components(separatedBy: "\r\n")
+                                    for line in lines {
+                                        if line.lowercased().hasPrefix("content-length:") {
+                                            let parts = line.split(separator: ":", maxSplits: 1)
+                                            if parts.count == 2 {
+                                                contentLength = Int(parts[1].trimmingCharacters(in: .whitespaces))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // If we know the content length, check if we have all the data
+                        if let headerEnd = headerEndIndex, let expectedLength = contentLength {
+                            let currentBodyLength = buffer.count - headerEnd
+                            if currentBodyLength >= expectedLength {
+                                print("📦 Received complete request: headers + \(currentBodyLength) bytes body")
+                                break
+                            }
+                        }
+                    } else if buffer.count > 0 {
+                        // No more data available
+                        break
+                    }
+
+                    attempts += 1
+                }
+
+                guard let requestString = String(data: buffer, encoding: .utf8) else {
+                    print("❌ Failed to decode request data")
                     fileHandle.closeFile()
                     return
                 }
 
+                print("📨 Received HTTP request (\(buffer.count) bytes total)")
                 let request = self?.parseRequest(requestString)
+
+                // Debug: print what we parsed
+                if let req = request {
+                    print("🔍 Parsed - Method: \(req.method), Path: \(req.path), Body length: \(req.body?.count ?? 0)")
+                }
+
                 let response = self?.delegate?.handleRequest(request ?? HTTPRequest(method: "GET", path: "/", headers: [:], body: nil)) ?? HTTPResponse(statusCode: 500, body: "Internal Server Error")
 
                 // Send response
@@ -210,13 +273,31 @@ class HTTPServer: NSObject, StreamDelegate {
                 fileHandle.closeFile()
 
             } catch {
+                print("❌ Error handling connection: \(error)")
                 try? fileHandle.closeFile()
             }
         }
     }
 
     private func parseRequest(_ requestString: String) -> HTTPRequest {
-        let lines = requestString.split(separator: "\n", omittingEmptySubsequences: true)
+        // Split on double CRLF or double LF to separate headers from body
+        let parts = requestString.components(separatedBy: "\r\n\r\n")
+        if parts.count < 2 {
+            // Try single LF
+            let lfParts = requestString.components(separatedBy: "\n\n")
+            if lfParts.count >= 2 {
+                return parseHTTPParts(headerSection: lfParts[0], body: lfParts[1...].joined(separator: "\n\n"))
+            }
+        } else {
+            return parseHTTPParts(headerSection: parts[0], body: parts[1...].joined(separator: "\r\n\r\n"))
+        }
+
+        // Fallback
+        return HTTPRequest(method: "GET", path: "/", headers: [:], body: nil)
+    }
+
+    private func parseHTTPParts(headerSection: String, body: String?) -> HTTPRequest {
+        let lines = headerSection.split(separator: "\n")
         guard let firstLine = lines.first?.split(separator: " ", maxSplits: 2) else {
             return HTTPRequest(method: "GET", path: "/", headers: [:], body: nil)
         }
@@ -225,14 +306,8 @@ class HTTPServer: NSObject, StreamDelegate {
         let path = String(firstLine[1])
 
         var headers: [String: String] = [:]
-        var bodyStartIndex = 2
-
         for i in 1..<lines.count {
-            let line = String(lines[i])
-            if line.trimmingCharacters(in: .whitespaces).isEmpty {
-                bodyStartIndex = i + 1
-                break
-            }
+            let line = String(lines[i]).trimmingCharacters(in: .whitespacesAndNewlines)
             let parts = line.split(separator: ":", maxSplits: 1)
             if parts.count == 2 {
                 let key = String(parts[0]).trimmingCharacters(in: .whitespaces)
@@ -241,8 +316,8 @@ class HTTPServer: NSObject, StreamDelegate {
             }
         }
 
-        let body = bodyStartIndex < lines.count ? String(lines[bodyStartIndex...].joined(separator: "\n")) : nil
-
-        return HTTPRequest(method: method, path: path, headers: headers, body: body)
+        let finalBody = body?.trimmingCharacters(in: .whitespacesAndNewlines)
+        print("📋 Parsed request - Method: \(method), Path: \(path), Body: \(finalBody ?? "nil")")
+        return HTTPRequest(method: method, path: path, headers: headers, body: finalBody)
     }
 }

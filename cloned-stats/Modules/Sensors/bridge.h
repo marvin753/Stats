@@ -33,7 +33,7 @@ IOHIDEventRef IOHIDServiceClientCopyEvent(IOHIDServiceClientRef, int64_t , int32
 CFTypeRef IOHIDServiceClientCopyProperty(IOHIDServiceClientRef service, CFStringRef property);
 IOHIDFloat IOHIDEventGetFloatValue(IOHIDEventRef event, int32_t field);
 
-NSDictionary*AppleSiliconSensors(int page, int usage, int32_t type);
+NSDictionary*AppleSiliconSensors(int32_t page, int32_t usage, int32_t type);
 
 CFDictionaryRef IOReportCopyChannelsInGroup(CFStringRef a, CFStringRef b, uint64_t c, uint64_t d, uint64_t e);
 void IOReportMergeChannels(CFDictionaryRef a, CFDictionaryRef b, CFTypeRef null);

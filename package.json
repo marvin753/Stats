@@ -6,6 +6,7 @@
   "scripts": {
     "scrape": "node scraper.js",
     "scrape:url": "node scraper.js --url",
+    "ai-parser": "node ai-parser-service.js",
     "test": "jest",
     "test:backend": "jest backend/tests",
     "test:frontend": "jest frontend/tests",
