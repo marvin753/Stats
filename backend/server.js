@@ -183,7 +183,7 @@ Do NOT include any explanation, text, or markdown. Return ONLY the JSON array.`;
   const userContent = JSON.stringify(questions, null, 2);
 
   try {
-    console.log('🤖 Calling OpenAI API...');
+    console.log(`🤖 Calling OpenAI API (model: ${OPENAI_MODEL})...`);
 
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
@@ -212,7 +212,6 @@ Do NOT include any explanation, text, or markdown. Return ONLY the JSON array.`;
     );
 
     const content = response.data.choices[0].message.content.trim();
-    console.log(`OpenAI Response: ${content}`);
 
     // Parse the JSON array from response
     const answerIndices = JSON.parse(content);
@@ -221,7 +220,7 @@ Do NOT include any explanation, text, or markdown. Return ONLY the JSON array.`;
       throw new Error('OpenAI response was not a valid array');
     }
 
-    console.log(`✓ Parsed answer indices: [${answerIndices.join(', ')}]`);
+    console.log(`✅ OpenAI Response: [${answerIndices.join(', ')}]`);
     return answerIndices;
 
   } catch (error) {
@@ -240,7 +239,7 @@ Do NOT include any explanation, text, or markdown. Return ONLY the JSON array.`;
  */
 async function sendToSwiftApp(answers) {
   try {
-    console.log(`📲 Sending answers to Swift app at ${STATS_APP_URL}...`);
+    console.log(`📤 Sending answers to Stats app (${STATS_APP_URL})...`);
 
     await axios.post(
       `${STATS_APP_URL}/display-answers`,
@@ -257,7 +256,7 @@ async function sendToSwiftApp(answers) {
       }
     );
 
-    console.log('✓ Successfully sent to Swift app');
+    console.log('✓ Successfully sent to Stats app\n');
 
   } catch (error) {
     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
@@ -293,7 +292,19 @@ app.post('/api/analyze', openaiLimiter, async (req, res) => {
       });
     }
 
-    console.log(`\n📥 Received ${questions.length} questions at ${timestamp}`);
+    console.log(`\n📥 Received ${questions.length} questions for analysis`);
+
+    // Show question preview (first 2)
+    if (questions.length > 0) {
+      console.log(`\n   Question preview:`);
+      questions.slice(0, Math.min(2, questions.length)).forEach((q, i) => {
+        const preview = q.question.length > 60 ? q.question.substring(0, 60) + '...' : q.question;
+        console.log(`   ${i + 1}. ${preview}`);
+      });
+      if (questions.length > 2) {
+        console.log(`   ... and ${questions.length - 2} more questions\n`);
+      }
+    }
 
     // Validate question structure
     const validQuestions = questions.every(q =>

@@ -53,25 +53,53 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     private var startTS: Date?
     
     static func main() {
+        // CRITICAL FAILSAFE LOGGING - If this doesn't appear, Swift isn't running at all
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("🚀 STATS APP MAIN() CALLED - SWIFT CODE IS EXECUTING!")
+        print("   Timestamp: \(Date())")
+        print("   Process ID: \(ProcessInfo.processInfo.processIdentifier)")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
         let app = NSApplication.shared
         let delegate = AppDelegate()
         app.delegate = delegate
+
+        print("📱 NSApplication created, delegate set")
+        print("⏳ About to call app.run()...")
+        fflush(stdout)  // Force flush to ensure logs appear
+
         app.run()
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        
+        print("\n" + String(repeating: "=", count: 80))
+        print("🎉 APPLICATION DID FINISH LAUNCHING - APP STARTED!")
+        print("   Timestamp: \(Date())")
+        print(String(repeating: "=", count: 80) + "\n")
+        fflush(stdout)
+
         // Initialize Quiz Animation System
-          _ = QuizIntegrationManager.shared
-          print("✅ Quiz Animation System initialized")
+        print("🔄 About to call QuizIntegrationManager.shared.initialize()...")
+        fflush(stdout)
+        QuizIntegrationManager.shared.initialize()
+        print("✅ Quiz Animation System initialized")
+        fflush(stdout)
         let startingPoint = Date()
-        
+
         self.parseArguments()
         self.parseVersion()
         SMCHelper.shared.checkForUpdate()
         self.setup {
             modules.reversed().forEach{ $0.mount() }
             self.settingsWindow.setModules()
+
+            // PHASE 2B: Connect quiz controller to GPU widget
+            // GPU module is at index 1 in modules array
+            if let gpuModule = modules[1] as? GPU {
+                QuizIntegrationManager.shared.connectToGPUModule(gpuModule)
+            } else {
+                print("⚠️  GPU module not found at expected index")
+            }
         }
         self.defaultValues()
         self.icon()
@@ -125,7 +153,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                 updater.download(url, completion: { path in
                     updater.install(path: path) { error in
                         if let error {
-                            showAlert("Error update Stats", error, .critical)
+                            DispatchQueue.main.async {
+                                showAlert("Error update Stats", error, .critical)
+                            }
                         }
                     }
                 })

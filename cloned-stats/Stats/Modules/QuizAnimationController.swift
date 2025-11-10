@@ -33,7 +33,7 @@ class QuizAnimationController: NSObject, ObservableObject {
 
     // Animation timing
     private let animationDuration: TimeInterval = 1.5 // 1.5 seconds to animate
-    private let displayDuration: TimeInterval = 7.0   // 7 seconds to display answer
+    private let displayDuration: TimeInterval = 10.0  // 10 seconds to display answer (changed from 7s)
     private let restDuration: TimeInterval = 15.0     // 15 seconds at 0
     private let finalDisplayDuration: TimeInterval = 15.0 // 15 seconds at 10
 
@@ -158,13 +158,13 @@ class QuizAnimationController: NSObject, ObservableObject {
     }
 
     /**
-     * Display answer at target value for 7 seconds
+     * Display answer at target value for configured duration
      */
     private func displayAnswer(_ target: Int) {
-        print("⏸️  Displaying answer: \(target) for 7 seconds")
+        print("⏸️  Displaying answer: \(target) for \(displayDuration) seconds")
         currentState = .displayingAnswer(targetNumber: target, startTime: Date())
 
-        displayTimer = Timer.scheduledTimer(withTimeInterval: 7.0, repeats: false) { [weak self] _ in
+        displayTimer = Timer.scheduledTimer(withTimeInterval: displayDuration, repeats: false) { [weak self] _ in
             self?.displayTimer?.invalidate()
             self?.displayTimer = nil
 

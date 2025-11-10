@@ -9,8 +9,9 @@
 
 import Cocoa
 import Combine
-import UserNotifications
+import GPU
 
+@MainActor
 class QuizIntegrationManager: NSObject, ObservableObject {
 
     // MARK: - Singleton
@@ -24,8 +25,43 @@ class QuizIntegrationManager: NSObject, ObservableObject {
     // MARK: - Components
     private let animationController = QuizAnimationController()
     private let httpServer = QuizHTTPServer()
-    private let keyboardManager = KeyboardShortcutManager(triggerKey: "q")
+    private let keyboardManager = KeyboardShortcutManager()
+    private let screenshotCapture = ScreenshotCapture()
+    private lazy var screenshotManager: ScreenshotStateManager = {
+        return ScreenshotStateManager()
+    }()
+    private let visionService = VisionAIService()
     private var cancellables = Set<AnyCancellable>()
+
+    // MARK: - GPU Module Reference (Phase 2B)
+    private weak var gpuModule: GPU?
+
+    // MARK: - Process Management (Security Fix #4, #5)
+    private var scraperProcess: Process?
+    private var isScraperRunning = false
+    private var aiFilterProcess: Process?
+    private var isAIFilterRunning = false
+
+    // MARK: - Path Configuration (Security Fix #3)
+    private let scraperPath: String = {
+        // Try environment variable first
+        if let envPath = ProcessInfo.processInfo.environment["SCRAPER_PATH"] {
+            return envPath
+        }
+
+        // Fallback to default location
+        return "/Users/marvinbarsal/Desktop/Universität/Stats/scraper.js"
+    }()
+
+    private let aiFilterPath: String = {
+        // Try environment variable first
+        if let envPath = ProcessInfo.processInfo.environment["AI_FILTER_PATH"] {
+            return envPath
+        }
+
+        // Fallback to default location
+        return "/Users/marvinbarsal/Desktop/Universität/Stats/ai-parser-service.js"
+    }()
 
     // MARK: - Initialization
     override init() {
@@ -39,78 +75,67 @@ class QuizIntegrationManager: NSObject, ObservableObject {
      * Initialize and start all quiz systems
      */
     func initialize() {
-        print("\n🎬 Initializing Quiz Integration Manager...")
+        print("\n🎬 [QuizIntegration] Initializing Quiz Integration Manager...")
 
-        // Request notification permissions
-        requestNotificationPermissions()
-
-        // Set up delegates
+        print("🔧 [QuizIntegration] Step 1: Setting up delegates...")
         httpServer.delegate = self
         keyboardManager.delegate = self
+        print("   ✓ HTTP server delegate set")
+        print("   ✓ Keyboard manager delegate set")
 
-        // Start HTTP server
+        print("🔧 [QuizIntegration] Step 2: Starting HTTP server...")
         httpServer.startServer()
 
-        // Register keyboard shortcut
+        print("🔧 [QuizIntegration] Step 3: Registering keyboard shortcut...")
         keyboardManager.registerGlobalShortcut()
 
-        // Subscribe to animation updates
+        print("🔧 [QuizIntegration] Step 4: Starting AI Filter Service...")
+        startAIFilterService()
+
+        print("🔧 [QuizIntegration] Step 5: Subscribing to animation updates...")
         animationController.$currentNumber
             .receive(on: DispatchQueue.main)
-            .assign(to: &$currentDisplayValue)
+            .sink { [weak self] value in
+                self?.currentDisplayValue = value
+            }
+            .store(in: &cancellables)
 
         animationController.$isAnimating
             .receive(on: DispatchQueue.main)
-            .assign(to: &$isAnimating)
+            .sink { [weak self] value in
+                self?.isAnimating = value
+            }
+            .store(in: &cancellables)
 
         isEnabled = true
-        print("✅ Quiz Integration Manager initialized")
+        print("✅ [QuizIntegration] Quiz Integration Manager initialized successfully")
+        print("   - HTTP Server: \(httpServer)")
+        print("   - Keyboard Manager: \(keyboardManager)")
+        print("   - Animation Controller: \(animationController)")
     }
 
     /**
-     * Request notification permissions (required for UserNotifications framework)
+     * Connect to GPU module for display integration (Phase 2B)
+     * Must be called AFTER modules are mounted in AppDelegate
      */
-    private func requestNotificationPermissions() {
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
-            if granted {
-                print("✓ Notification permissions granted")
-            } else if let error = error {
-                print("⚠️  Notification permission error: \(error.localizedDescription)")
-            } else {
-                print("⚠️  Notification permissions denied")
+    func connectToGPUModule(_ gpu: GPU) {
+        self.gpuModule = gpu
+        print("🔗 Connected to GPU module for quiz display")
+
+        // Observe currentNumber changes and update GPU widget
+        animationController.$currentNumber
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak gpu] number in
+                gpu?.updateQuizNumber(number)
+                self?.currentDisplayValue = number
             }
-        }
+            .store(in: &cancellables)
+
+        // Initialize GPU widget with 0
+        gpu.updateQuizNumber(0)
+        print("✅ GPU widget integration complete - displaying default value: 0")
     }
 
-    /**
-     * Show notification using modern UserNotifications framework
-     * @param title - Notification title
-     * @param body - Notification body text
-     */
-    private func showNotification(title: String, body: String) {
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        content.sound = .default
-
-        // Create a unique identifier for the notification
-        let identifier = UUID().uuidString
-
-        // Create trigger (immediate delivery)
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
-
-        // Create request
-        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-
-        // Schedule notification
-        let center = UNUserNotificationCenter.current()
-        center.add(request) { error in
-            if let error = error {
-                print("⚠️  Failed to show notification: \(error.localizedDescription)")
-            }
-        }
-    }
 
     /**
      * Shutdown all quiz systems
@@ -121,6 +146,7 @@ class QuizIntegrationManager: NSObject, ObservableObject {
         animationController.stopAnimation()
         httpServer.stopServer()
         keyboardManager.unregisterGlobalShortcut()
+        stopAIFilterService()
 
         isEnabled = false
         print("✓ Quiz Integration Manager shut down")
@@ -135,6 +161,59 @@ class QuizIntegrationManager: NSObject, ObservableObject {
     }
 
     // MARK: - Private Methods
+
+    /**
+     * Find Node.js executable path
+     * Supports Intel Macs (/usr/local/bin) and M1/M2 Macs (/opt/homebrew/bin)
+     * Security Fix (Code Review): Consolidates node path detection logic
+     */
+    private func findNodeExecutable() -> String? {
+        let possiblePaths = [
+            "/opt/homebrew/bin/node",    // M1/M2 Macs (Apple Silicon)
+            "/usr/local/bin/node",       // Intel Macs
+            "/usr/bin/node"              // System fallback
+        ]
+
+        for path in possiblePaths {
+            if FileManager.default.fileExists(atPath: path) {
+                return path
+            }
+        }
+
+        return nil
+    }
+
+    /**
+     * Setup process pipes for output/error capture
+     * Security Fix (Code Review): Prevents duplicate pipe setup code
+     * @param process - The Process to configure
+     * @param logPrefix - Prefix for log messages (e.g., "[AIFilter]" or "[Scraper]")
+     * @returns Tuple of (outputPipe, errorPipe)
+     */
+    private func setupProcessPipes(_ process: Process, logPrefix: String) -> (output: Pipe, error: Pipe) {
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+
+        // Read output asynchronously
+        outputPipe.fileHandleForReading.readabilityHandler = { handle in
+            let data = handle.availableData
+            if let output = String(data: data, encoding: .utf8), !output.isEmpty {
+                print("📄 \(logPrefix) \(output.trimmingCharacters(in: .whitespacesAndNewlines))")
+            }
+        }
+
+        errorPipe.fileHandleForReading.readabilityHandler = { handle in
+            let data = handle.availableData
+            if let output = String(data: data, encoding: .utf8), !output.isEmpty {
+                print("⚠️  \(logPrefix) \(output.trimmingCharacters(in: .whitespacesAndNewlines))")
+            }
+        }
+
+        return (outputPipe, errorPipe)
+    }
 
     private func setupBindings() {
         // Subscribe to animation changes
@@ -152,22 +231,404 @@ class QuizIntegrationManager: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
     }
+
+    /**
+     * Start the AI Filter Service (ai-parser-service.js)
+     * This service receives raw DOM from scraper and uses Ollama to extract Q&A
+     */
+    private func startAIFilterService() {
+        print("🤖 [AIFilter] Starting AI Filter Service...")
+
+        // Validate AI filter script exists
+        guard FileManager.default.fileExists(atPath: aiFilterPath) else {
+            print("❌ [AIFilter] AI Filter script not found at: \(aiFilterPath)")
+            return
+        }
+
+        // Security Fix (Code Review): Use consolidated node path detection
+        guard let nodePath = findNodeExecutable() else {
+            print("❌ [AIFilter] Node.js not found in standard locations")
+            return
+        }
+
+        print("✓ [AIFilter] Using Node.js at: \(nodePath)")
+
+        // Cancel any existing AI filter process
+        if let existingProcess = aiFilterProcess, existingProcess.isRunning {
+            print("⚠️  [AIFilter] Terminating existing AI filter process")
+            existingProcess.terminate()
+        }
+
+        let task = Process()
+        aiFilterProcess = task
+
+        task.executableURL = URL(fileURLWithPath: nodePath)
+        task.arguments = [aiFilterPath]
+
+        // Security Fix (Code Review): Use helper method for pipe setup
+        let pipes = setupProcessPipes(task, logPrefix: "[AIFilter]")
+
+        // Warning #1 Fix: Add explicit file handle closure in termination handler
+        task.terminationHandler = { [weak self] process in
+            print("🔚 [AIFilter] AI Filter process terminated with status: \(process.terminationStatus)")
+
+            // Clean up file handles
+            pipes.output.fileHandleForReading.readabilityHandler = nil
+            pipes.error.fileHandleForReading.readabilityHandler = nil
+
+            // WARNING #1 FIX: Explicitly close file handles to prevent descriptor leaks
+            try? pipes.output.fileHandleForReading.close()
+            try? pipes.error.fileHandleForReading.close()
+
+            // Update main actor-isolated properties on main actor
+            Task { @MainActor in
+                self?.aiFilterProcess = nil
+                self?.isAIFilterRunning = false
+            }
+        }
+
+        do {
+            try task.run()
+            isAIFilterRunning = true
+            print("✅ [AIFilter] AI Filter Service launched successfully")
+            print("   Running on port 3001 (Ollama integration)")
+        } catch {
+            print("❌ [AIFilter] Failed to launch AI Filter Service: \(error.localizedDescription)")
+            aiFilterProcess = nil
+            isAIFilterRunning = false
+        }
+    }
+
+    /**
+     * Stop the AI Filter Service
+     * WARNING #2 FIX: Implements graceful termination with 3-second timeout
+     */
+    private func stopAIFilterService() {
+        guard let process = aiFilterProcess, process.isRunning else {
+            print("✓ [AIFilter] AI Filter Service not running")
+            return
+        }
+
+        print("🛑 [AIFilter] Stopping AI Filter Service...")
+        process.terminate()
+
+        // WARNING #2 FIX: Wait up to 3 seconds for graceful termination
+        let startTime = Date()
+        let timeout: TimeInterval = 3.0
+        var attempts = 0
+        let maxAttempts = 30 // 30 * 100ms = 3 seconds
+
+        while process.isRunning && attempts < maxAttempts {
+            usleep(100_000) // Sleep 100ms (0.1 seconds)
+            attempts += 1
+
+            if Date().timeIntervalSince(startTime) >= timeout {
+                break
+            }
+        }
+
+        // WARNING #2 FIX: Force kill if process hasn't stopped gracefully
+        if process.isRunning {
+            print("⚠️  [AIFilter] Process did not terminate gracefully, forcing termination")
+            process.interrupt() // Send SIGINT (stronger than SIGTERM)
+
+            // Wait one more brief moment
+            usleep(500_000) // 500ms
+
+            if process.isRunning {
+                print("❌ [AIFilter] Process still running after force kill attempt")
+            }
+        }
+
+        aiFilterProcess = nil
+        isAIFilterRunning = false
+        print("✅ [AIFilter] AI Filter Service stopped")
+    }
+
+    /**
+     * Get current browser tab URL using AppleScript
+     * Supports Chrome and Safari
+     */
+    private func getCurrentBrowserURL() -> String? {
+        // Try Chrome first with proper error handling
+        let chromeScript = """
+        tell application "Google Chrome"
+            if it is running then
+                if (count of windows) > 0 then
+                    if (count of tabs of front window) > 0 then
+                        return URL of active tab of front window
+                    end if
+                end if
+            end if
+        end tell
+        return ""
+        """
+
+        if let chromeURL = executeAppleScript(chromeScript), !chromeURL.isEmpty {
+            return chromeURL
+        }
+
+        // Try Safari as fallback
+        let safariScript = """
+        tell application "Safari"
+            if it is running then
+                if (count of windows) > 0 then
+                    if (count of documents) > 0 then
+                        return URL of front document
+                    end if
+                end if
+            end if
+        end tell
+        return ""
+        """
+
+        if let safariURL = executeAppleScript(safariScript), !safariURL.isEmpty {
+            return safariURL
+        }
+
+        print("⚠️  Could not get URL from Chrome or Safari")
+        print("   Possible reasons: No browser windows open, all windows minimized, or browser not running")
+        return nil
+    }
+
+    /**
+     * Execute AppleScript and return result
+     */
+    private func executeAppleScript(_ script: String) -> String? {
+        let appleScript = NSAppleScript(source: script)
+        var error: NSDictionary?
+        let result = appleScript?.executeAndReturnError(&error)
+
+        if let error = error {
+            print("⚠️  AppleScript error: \(error)")
+            return nil
+        }
+
+        return result?.stringValue
+    }
+
+    /**
+     * Validates URL for security before passing to scraper (Security Fix #2)
+     */
+    private func validateURL(_ urlString: String) -> Bool {
+        // Check for empty URL
+        guard !urlString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return false
+        }
+
+        // Parse as URL
+        guard let url = URL(string: urlString) else {
+            return false
+        }
+
+        // Check scheme (only allow HTTP/HTTPS)
+        guard let scheme = url.scheme?.lowercased(),
+              ["http", "https"].contains(scheme) else {
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * Launch the Node.js scraper with the given URL
+     */
+    private func launchScraper(url: String) {
+        print("🌐 Launching scraper for URL: \(url)")
+
+        // Security Fix #1: Validate URL first
+        guard let urlObject = URL(string: url),
+              let scheme = urlObject.scheme,
+              ["http", "https"].contains(scheme.lowercased()) else {
+            print("❌ Invalid URL scheme detected: \(url)")
+            isScraperRunning = false
+            return
+        }
+
+        // Security Fix #3: Validate scraper exists
+        guard FileManager.default.fileExists(atPath: scraperPath) else {
+            print("❌ Scraper not found at: \(scraperPath)")
+            isScraperRunning = false
+            return
+        }
+
+        // Security Fix (Code Review): Use consolidated node path detection
+        guard let nodePath = findNodeExecutable() else {
+            print("❌ Node.js not found in standard locations")
+            isScraperRunning = false
+            return
+        }
+
+        print("✓ Using Node.js at: \(nodePath)")
+
+        // Security Fix #4: Cancel any existing scraper
+        if let existingProcess = scraperProcess, existingProcess.isRunning {
+            print("⚠️  Terminating existing scraper process")
+            existingProcess.terminate()
+        }
+
+        let task = Process()
+        scraperProcess = task  // Retain reference
+
+        task.executableURL = URL(fileURLWithPath: nodePath)
+
+        // Security Fix #1: Pass URL as separate argument to prevent command injection
+        task.arguments = [
+            scraperPath,  // Use variable instead of hardcoded path
+            "--url",      // Separate flag
+            url           // Separate value - cannot be interpreted as shell command
+        ]
+
+        // Security Fix (Code Review): Use helper method for pipe setup
+        let pipes = setupProcessPipes(task, logPrefix: "[Scraper]")
+
+        // Security Fix #4 + WARNING #1 FIX: Add termination handler with explicit file handle closure
+        task.terminationHandler = { [weak self] process in
+            print("🔚 Scraper process terminated with status: \(process.terminationStatus)")
+
+            // Clean up file handles
+            pipes.output.fileHandleForReading.readabilityHandler = nil
+            pipes.error.fileHandleForReading.readabilityHandler = nil
+
+            // WARNING #1 FIX: Explicitly close file handles to prevent descriptor leaks
+            try? pipes.output.fileHandleForReading.close()
+            try? pipes.error.fileHandleForReading.close()
+
+            // Update main actor-isolated properties on main actor
+            Task { @MainActor in
+                self?.scraperProcess = nil
+                self?.isScraperRunning = false  // Reset flag
+            }
+        }
+
+        do {
+            try task.run()
+            print("✅ Scraper launched successfully")
+        } catch {
+            print("❌ Failed to launch scraper: \(error.localizedDescription)")
+            scraperProcess = nil
+            isScraperRunning = false  // Reset flag
+        }
+    }
 }
 
 // MARK: - Keyboard Shortcut Delegate
 extension QuizIntegrationManager: KeyboardShortcutDelegate {
-    func keyboardShortcutTriggered() {
-        print("⌨️  Keyboard shortcut triggered!")
-        print("🚀 Triggering scraper and quiz workflow...")
+    /**
+     * Called when Cmd+Option+O is pressed - Capture screenshot
+     */
+    func onCaptureScreenshot() {
+        print("\n" + String(repeating: "=", count: 60))
+        print("📸 [QuizIntegration] CAPTURE SCREENSHOT (Cmd+Option+O)")
+        print(String(repeating: "=", count: 60))
 
-        // Show notification using modern UserNotifications framework
-        showNotification(
-            title: "Quiz Scraper",
-            body: "Starting webpage analysis..."
-        )
+        // Check screen recording permission
+        guard screenshotCapture.hasScreenRecordingPermission() else {
+            print("⚠️  Screen recording permission not granted")
+            print("   First use will show permission dialog - this is normal")
+            return
+        }
 
-        // The backend will send answers via HTTP to QuizHTTPServer
-        // which will then trigger triggerQuiz()
+        // Capture screenshot
+        guard let base64Image = screenshotCapture.captureMainDisplay() else {
+            print("❌ Failed to capture screenshot")
+            return
+        }
+
+        // Add to accumulation
+        let result = screenshotManager.addScreenshot(base64Image)
+
+        if result.success {
+            let count = screenshotManager.getScreenshotCount()
+            print("✅ Screenshot \(count) captured successfully")
+
+            if let warning = result.warning {
+                print("⚠️  \(warning)")
+            }
+        } else {
+            print("❌ Failed to add screenshot (maximum reached)")
+        }
+    }
+
+    /**
+     * Called when Cmd+Control+P is pressed - Process all screenshots
+     */
+    func onProcessScreenshots() {
+        print("\n" + String(repeating: "=", count: 60))
+        print("🚀 [QuizIntegration] PROCESS SCREENSHOTS (Cmd+Control+P)")
+        print(String(repeating: "=", count: 60))
+
+        // Check if we have screenshots to process
+        guard screenshotManager.isReadyToProcess() else {
+            print("⚠️  No screenshots to process")
+            print("   Press Cmd+Option+O to capture screenshots first")
+            return
+        }
+
+        let count = screenshotManager.getScreenshotCount()
+        print("📤 Processing \(count) screenshots...")
+
+        // Process asynchronously
+        Task { @MainActor in
+            do {
+                // Get all screenshots
+                let screenshots = screenshotManager.getAllScreenshots()
+                print("📸 Sending \(screenshots.count) screenshots to OpenAI Vision API...")
+
+                // Extract questions using Vision API
+                let questions = try await visionService.extractQuizQuestions(from: screenshots)
+                print("✅ Extracted \(questions.count) questions from screenshots")
+
+                // Send questions to backend for answer analysis
+                print("📤 Sending questions to backend for analysis...")
+                let answers = try await sendToBackend(questions: questions)
+                print("✅ Received \(answers.count) answer indices from backend")
+
+                // Trigger animation
+                animationController.startAnimation(with: answers)
+                print("🎬 Animation started with \(answers.count) answers")
+
+                // Clear screenshots after successful processing
+                screenshotManager.clearScreenshots()
+                print("🧹 Screenshots cleared - ready for next quiz")
+
+            } catch {
+                print("❌ Error processing screenshots: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /**
+     * Send questions to backend for OpenAI answer analysis
+     */
+    private func sendToBackend(questions: [[String: Any]]) async throws -> [Int] {
+        let backendURL = URL(string: "http://localhost:3000/api/analyze")!
+        var request = URLRequest(url: backendURL)
+        request.httpMethod = "POST"
+
+        let payload: [String: Any] = [
+            "questions": questions,
+            "timestamp": ISO8601DateFormatter().string(from: Date())
+        ]
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+
+        // Set Content-Type AFTER httpBody to prevent URLSession from adding charset=UTF-8
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw NSError(domain: "Backend", code: -1, userInfo: [NSLocalizedDescriptionKey: "Backend returned error"])
+        }
+
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let answers = json["answers"] as? [Int] else {
+            throw NSError(domain: "Backend", code: -2, userInfo: [NSLocalizedDescriptionKey: "Invalid backend response"])
+        }
+
+        return answers
     }
 }
 

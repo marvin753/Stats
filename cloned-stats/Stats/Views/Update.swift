@@ -286,7 +286,9 @@ private class UpdateView: NSView {
     @objc private func install() {
         updater.install(path: self.path) { error in
             if let error {
-                showAlert("Error update Stats", error, .critical)
+                DispatchQueue.main.async {
+                    showAlert("Error update Stats", error, .critical)
+                }
             }
         }
     }

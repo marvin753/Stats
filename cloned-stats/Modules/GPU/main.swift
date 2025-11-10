@@ -109,13 +109,16 @@ public class GPU: Module {
     private let settingsView: Settings
     private let portalView: Portal
     private let notificationsView: Notifications
-    
+
     private var infoReader: InfoReader? = nil
-    
+
     private var selectedGPU: String = ""
     private var notificationLevelState: Bool = false
     private var notificationID: String? = nil
-    
+
+    // PHASE 2B: Current quiz number to display
+    private var currentQuizNumber: Int = 0
+
     private var showType: Bool {
         get {
             return Store.shared.bool(key: "\(self.config.name)_showType", defaultValue: false)
@@ -127,7 +130,7 @@ public class GPU: Module {
         self.settingsView = Settings(.GPU)
         self.portalView = Portal(.GPU)
         self.notificationsView = Notifications(.GPU)
-        
+
         super.init(
             moduleType: .GPU,
             popup: self.popupView,
@@ -136,12 +139,18 @@ public class GPU: Module {
             notifications: self.notificationsView
         )
         guard self.available else { return }
-        
+
+        // PHASE 2A: GPU monitoring completely disabled
+        // GPU widget now displays quiz answer numbers instead of GPU utilization
+        // The reader is no longer initialized to prevent GPU metrics collection
+
+        /*
+        // Original GPU monitoring code (disabled for quiz integration)
         self.infoReader = InfoReader(.GPU) { [weak self] value in
             self?.infoCallback(value)
         }
         self.selectedGPU = Store.shared.string(key: "\(self.config.name)_gpu", defaultValue: self.selectedGPU)
-        
+
         self.settingsView.selectedGPUHandler = { [weak self] value in
             self?.selectedGPU = value
             self?.infoReader?.read()
@@ -152,10 +161,59 @@ public class GPU: Module {
         self.settingsView.callback = { [weak self] in
             self?.infoReader?.read()
         }
-        
+
         self.setReaders([self.infoReader])
+        */
+
+        print("✅ GPU module initialized in quiz mode (GPU monitoring disabled)")
     }
-    
+
+    // MARK: - Quiz Integration (Phase 2B)
+
+    /**
+     * Update GPU widget to display quiz answer number
+     * Called by QuizIntegrationManager when currentNumber changes
+     * @param number - The quiz number to display (0, 1, 2, 3, 4, ..., 10)
+     */
+    public func updateQuizNumber(_ number: Int) {
+        self.currentQuizNumber = number
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            // Convert number to "percentage-like" display (number/100.0)
+            // This ensures the Mini widget displays just the number without "%"
+            let displayValue = Double(number) / 100.0
+
+            // CRASH FIX: Safety check for widgets array
+            guard !self.menuBar.widgets.isEmpty else {
+                print("⚠️  GPU widget unavailable (no widgets found) - skipping update for number \(number)")
+                return
+            }
+
+            // Update all active widgets with the quiz number
+            let activeWidgets = self.menuBar.widgets.filter{ $0.isActive }
+
+            guard !activeWidgets.isEmpty else {
+                print("⚠️  GPU widget unavailable (no active widgets) - skipping update for number \(number)")
+                return
+            }
+
+            activeWidgets.forEach { (w: SWidget) in
+                switch w.item {
+                case let widget as Mini:
+                    widget.setValue(displayValue)
+                    // Remove suffix so it shows just the number
+                    widget.setSuffix("")
+                    widget.setTitle(nil) // No label
+                default: break
+                }
+            }
+
+            print("🔢 GPU widget updated: displaying quiz number \(number)")
+        }
+    }
+
     private func infoCallback(_ raw: GPUs?) {
         guard raw != nil && !raw!.list.isEmpty, let value = raw, self.enabled else { return }
         
