@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stealth Mode Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        h1 {
+            color: #333;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🕵️ Chrome Stealth Mode Verification</h1>
+
+    <div class="info">
+        <strong>Purpose:</strong> This page tests if Chrome is running in stealth mode with the <code>--disable-blink-features=AutomationControlled</code> flag.
+        <br><br>
+        <strong>Expected:</strong> <code>navigator.webdriver</code> should be <code>undefined</code> (not <code>true</code>).
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function addTest(name, condition, actual) {
+            const div = document.createElement('div');
+            div.className = `test-result ${condition ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${condition ? '✅ PASS' : '❌ FAIL'}:</strong> ${name}<br>
+                <small>Actual value: ${JSON.stringify(actual)}</small>
+            `;
+            resultsDiv.appendChild(div);
+        }
+
+        // Test 1: navigator.webdriver should be undefined
+        const isStealthMode = navigator.webdriver === undefined;
+        addTest(
+            'navigator.webdriver is undefined (stealth mode active)',
+            isStealthMode,
+            navigator.webdriver
+        );
+
+        // Test 2: Check for automation extensions
+        const hasAutomationExtensions = window.chrome && window.chrome.runtime;
+        addTest(
+            'No automation extensions detected',
+            !hasAutomationExtensions,
+            hasAutomationExtensions ? 'Extensions detected' : 'No extensions'
+        );
+
+        // Test 3: Check user agent
+        const userAgent = navigator.userAgent;
+        const hasHeadlessChrome = userAgent.includes('HeadlessChrome');
+        addTest(
+            'User agent does not contain "HeadlessChrome"',
+            !hasHeadlessChrome,
+            userAgent
+        );
+
+        // Test 4: Check for webdriver property in plugins
+        const hasWebdriverPlugin = Array.from(navigator.plugins || []).some(
+            p => p.name.toLowerCase().includes('webdriver')
+        );
+        addTest(
+            'No webdriver plugins detected',
+            !hasWebdriverPlugin,
+            hasWebdriverPlugin ? 'Webdriver plugin found' : 'No webdriver plugins'
+        );
+
+        // Overall result
+        const allPassed = isStealthMode && !hasAutomationExtensions && !hasHeadlessChrome && !hasWebdriverPlugin;
+        const overallDiv = document.createElement('div');
+        overallDiv.className = `test-result ${allPassed ? 'pass' : 'fail'}`;
+        overallDiv.style.fontSize = '18px';
+        overallDiv.style.marginTop = '30px';
+        overallDiv.innerHTML = `<strong>${allPassed ? '✅ STEALTH MODE ACTIVE' : '❌ STEALTH MODE INACTIVE'}</strong>`;
+        resultsDiv.appendChild(overallDiv);
+
+        // Additional info
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'info';
+        infoDiv.style.marginTop = '30px';
+        infoDiv.innerHTML = `
+            <strong>Additional Information:</strong><br>
+            <strong>User Agent:</strong> ${userAgent}<br>
+            <strong>Language:</strong> ${navigator.language}<br>
+            <strong>Platform:</strong> ${navigator.platform}<br>
+            <strong>Hardware Concurrency:</strong> ${navigator.hardwareConcurrency}<br>
+            <strong>Device Memory:</strong> ${navigator.deviceMemory || 'Not available'} GB
+        `;
+        resultsDiv.appendChild(infoDiv);
+    </script>
+</body>
+</html>

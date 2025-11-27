@@ -33,6 +33,8 @@
 	</dict>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>This permission allows obtaining battery level of Bluetooth devices</string>
+	<key>NSInputMonitoringUsageDescription</key>
+	<string>Stats needs to monitor keyboard input to capture screenshots when you press Cmd+Option+O for system monitoring features.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2020 Serhiy Mytrovtsiy. All rights reserved.</string>
 	<key>NSPrincipalClass</key>

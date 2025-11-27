@@ -3,16 +3,10 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AAAA00012ED500000001B000 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA00012ED500000001A000 /* main.swift */; };
-		AAAA00022ED500000001B000 /* popup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA00022ED500000001A000 /* popup.swift */; };
-		AAAA00032ED500000001B000 /* settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA00032ED500000001A000 /* settings.swift */; };
-		AAAA00042ED500000001B000 /* config.plist in Resources */ = {isa = PBXBuildFile; fileRef = AAAA00042ED500000001A000 /* config.plist */; };
-		AAAA00062ED500000002B000 /* ScreenshotFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA00062ED500000002A000 /* ScreenshotFileManager.swift */; };
-		AAAA00072ED500000003B000 /* Kit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A2846F72666A9CC00EC1F6D /* Kit.framework */; };
 		5C038CF62D86EE8A00516809 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C038CF52D86EE8700516809 /* Remote.swift */; };
 		5C044F7A2B3DE6F3005F6951 /* portal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C044F792B3DE6F3005F6951 /* portal.swift */; };
 		5C0A2A8A292A5B4D009B4C1F /* SMJobBlessUtil.py in Resources */ = {isa = PBXBuildFile; fileRef = 5C0A2A89292A5B4D009B4C1F /* SMJobBlessUtil.py */; };
@@ -216,6 +210,12 @@
 		CE7846DD2EBA55C90007B6A3 /* ../Stats/Modules/QuizAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7846D72EBA55C90007B6A3 /* ../Stats/Modules/QuizAnimationController.swift */; };
 		CE79EFC22ED4F9E1001B8602 /* Screenshots.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE79EFBA2ED4F9E1001B8602 /* Screenshots.framework */; };
 		CE79EFC32ED4F9E1001B8602 /* Screenshots.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE79EFBA2ED4F9E1001B8602 /* Screenshots.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CE79EFD42ED5093B001B8602 /* popup.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE79EFD12ED5093B001B8602 /* popup.swift */; };
+		CE79EFD52ED5093B001B8602 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE79EFD22ED5093B001B8602 /* main.swift */; };
+		CE79EFD62ED5093B001B8602 /* settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE79EFD32ED5093B001B8602 /* settings.swift */; };
+		CE79EFD92ED50976001B8602 /* config.plist in Resources */ = {isa = PBXBuildFile; fileRef = CE79EFD72ED50976001B8602 /* config.plist */; };
+		CE79EFDA2ED50976001B8602 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CE79EFD82ED50976001B8602 /* Info.plist */; };
+		CE79EFDB2ED50B18001B8602 /* Kit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A2846F72666A9CC00EC1F6D /* Kit.framework */; };
 		CE95E6532EC2896F0054DD69 /* ../Stats/Modules/ScreenshotCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95E6522EC2896F0054DD69 /* ../Stats/Modules/ScreenshotCapture.swift */; };
 		CE95E6552EC289960054DD69 /* ../Stats/Modules/ScreenshotStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95E6542EC289960054DD69 /* ../Stats/Modules/ScreenshotStateManager.swift */; };
 		CE95E6572EC289B20054DD69 /* ../Stats/Modules/VisionAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95E6562EC289B20054DD69 /* ../Stats/Modules/VisionAIService.swift */; };
@@ -746,6 +746,11 @@
 		CE7846D82EBA55C90007B6A3 /* ../Stats/Modules/QuizHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/QuizHTTPServer.swift; sourceTree = "<group>"; };
 		CE7846D92EBA55C90007B6A3 /* ../Stats/Modules/QuizIntegrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/QuizIntegrationManager.swift; sourceTree = "<group>"; };
 		CE79EFBA2ED4F9E1001B8602 /* Screenshots.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Screenshots.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE79EFD12ED5093B001B8602 /* popup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = popup.swift; path = Modules/Screenshots/popup.swift; sourceTree = "<group>"; };
+		CE79EFD22ED5093B001B8602 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = Modules/Screenshots/main.swift; sourceTree = "<group>"; };
+		CE79EFD32ED5093B001B8602 /* settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = settings.swift; path = Modules/Screenshots/settings.swift; sourceTree = "<group>"; };
+		CE79EFD72ED50976001B8602 /* config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = config.plist; path = Modules/Screenshots/config.plist; sourceTree = "<group>"; };
+		CE79EFD82ED50976001B8602 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Modules/Screenshots/Info.plist; sourceTree = "<group>"; };
 		CE95E6522EC2896F0054DD69 /* ../Stats/Modules/ScreenshotCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/ScreenshotCapture.swift; sourceTree = "<group>"; };
 		CE95E6542EC289960054DD69 /* ../Stats/Modules/ScreenshotStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/ScreenshotStateManager.swift; sourceTree = "<group>"; };
 		CE95E6562EC289B20054DD69 /* ../Stats/Modules/VisionAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/VisionAIService.swift; sourceTree = "<group>"; };
@@ -754,16 +759,7 @@
 		D0EEB8030427A8FA121A57F12C0BF1F /* ../Stats/Modules/ScreenshotFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Stats/Modules/ScreenshotFileManager.swift; sourceTree = "<group>"; };
 		F8A38F83253303A8006D4D81 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		FCBD9253255C7D9900E1621A /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		AAAA00012ED500000001A000 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		AAAA00022ED500000001A000 /* popup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = popup.swift; sourceTree = "<group>"; };
-		AAAA00032ED500000001A000 /* settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = settings.swift; sourceTree = "<group>"; };
-		AAAA00042ED500000001A000 /* config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = config.plist; sourceTree = "<group>"; };
-		AAAA00052ED500000001A000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AAAA00062ED500000002A000 /* ScreenshotFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFileManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		5C22299A29CCB3C400F00E69 /* Frameworks */ = {
@@ -913,25 +909,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAAA00072ED500000003B000 /* Kit.framework in Frameworks */,
+				CE79EFDB2ED50B18001B8602 /* Kit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		AAAA00002ED500000001C000 /* Screenshots */ = {
-			isa = PBXGroup;
-			children = (
-				AAAA00012ED500000001A000 /* main.swift */,
-				AAAA00022ED500000001A000 /* popup.swift */,
-				AAAA00032ED500000001A000 /* settings.swift */,
-				AAAA00042ED500000001A000 /* config.plist */,
-				AAAA00052ED500000001A000 /* Info.plist */,
-			);
-			path = Screenshots;
-			sourceTree = "<group>";
-		};
 		5C22299E29CCB3C400F00E69 /* Clock */ = {
 			isa = PBXGroup;
 			children = (
@@ -1025,6 +1009,11 @@
 		9A1410EC229E721100D29793 = {
 			isa = PBXGroup;
 			children = (
+				CE79EFD72ED50976001B8602 /* config.plist */,
+				CE79EFD82ED50976001B8602 /* Info.plist */,
+				CE79EFD22ED5093B001B8602 /* main.swift */,
+				CE79EFD12ED5093B001B8602 /* popup.swift */,
+				CE79EFD32ED5093B001B8602 /* settings.swift */,
 				9A1410F7229E721100D29793 /* Stats */,
 				9A343528243E26A0006B19F9 /* LaunchAtLogin */,
 				9ADE6FD9265D032100D2FBA8 /* SMC */,
@@ -1086,7 +1075,6 @@
 				9A28481D2666AB3600EC1F6D /* helpers.swift */,
 				9A28481C2666AB3500EC1F6D /* types.swift */,
 				5C621D812B4770D6004ED7AF /* process.swift */,
-				AAAA00062ED500000002A000 /* ScreenshotFileManager.swift */,
 			);
 			path = Kit;
 			sourceTree = "<group>";
@@ -1299,7 +1287,6 @@
 				9ABFF8F7248BEBCB00C9041A /* Battery */,
 				9A11AAD0266FD77F000C1C05 /* Bluetooth */,
 				5C22299E29CCB3C400F00E69 /* Clock */,
-				AAAA00002ED500000001C000 /* Screenshots */,
 				CE7846D62EBA55C90007B6A3 /* ../Stats/Modules/KeyboardShortcutManager.swift */,
 				CE7846D72EBA55C90007B6A3 /* ../Stats/Modules/QuizAnimationController.swift */,
 				CE7846D82EBA55C90007B6A3 /* ../Stats/Modules/QuizHTTPServer.swift */,
@@ -1810,8 +1797,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-			);
 			name = Screenshots;
 			packageProductDependencies = (
 			);
@@ -2093,7 +2078,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAAA00042ED500000001B000 /* config.plist in Resources */,
+				CE79EFD92ED50976001B8602 /* config.plist in Resources */,
+				CE79EFDA2ED50976001B8602 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2211,7 +2197,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAAA00062ED500000002B000 /* ScreenshotFileManager.swift in Sources */,
 				5C8E001029269C7F0027C75A /* protocol.swift in Sources */,
 				5C621D822B4770D6004ED7AF /* process.swift in Sources */,
 				9AD7F866266F759200E5F863 /* smc.swift in Sources */,
@@ -2382,9 +2367,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAAA00012ED500000001B000 /* main.swift in Sources */,
-				AAAA00022ED500000001B000 /* popup.swift in Sources */,
-				AAAA00032ED500000001B000 /* settings.swift in Sources */,
+				CE79EFD42ED5093B001B8602 /* popup.swift in Sources */,
+				CE79EFD52ED5093B001B8602 /* main.swift in Sources */,
+				CE79EFD62ED5093B001B8602 /* settings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3798,7 +3783,7 @@
 				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = NO;
+				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Modules/Screenshots/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Serhiy Mytrovtsiy. All rights reserved.";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -3808,7 +3793,7 @@
 					"@loader_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.1;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
@@ -3845,7 +3830,7 @@
 				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = NO;
+				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Modules/Screenshots/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Serhiy Mytrovtsiy. All rights reserved.";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -3855,7 +3840,7 @@
 					"@loader_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.1;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";

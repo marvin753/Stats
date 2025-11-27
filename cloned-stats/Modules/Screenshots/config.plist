@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Name</key>
+    <string>Screenshots</string>
+    <key>State</key>
+    <true/>
+    <key>Symbol</key>
+    <string>photo.stack</string>
+    <key>AlternativeSymbol</key>
+    <string>folder.fill</string>
+    <key>Widgets</key>
+    <dict/>
+    <key>Settings</key>
+    <dict/>
+</dict>
+</plist>

@@ -1,0 +1,40 @@
+{
+  "name": "stats-quiz-integration-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive integration tests for Stats quiz system",
+  "scripts": {
+    "test": "jest --runInBand",
+    "test:integration": "jest tests/integration --runInBand",
+    "test:unit": "jest tests/unit",
+    "test:coverage": "jest --coverage --runInBand",
+    "test:verbose": "jest --verbose --runInBand"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 120000,
+    "verbose": true,
+    "testMatch": [
+      "**/integration/**/*.js",
+      "**/unit/**/*.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "e2e.test.js",
+      "e2e.playwright.js"
+    ],
+    "collectCoverageFrom": [
+      "../chrome-cdp-service/**/*.{js,ts}",
+      "../backend/**/*.js",
+      "!**/node_modules/**"
+    ]
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "jest": "^29.7.0",
+    "playwright": "^1.40.0",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0"
+  }
+}

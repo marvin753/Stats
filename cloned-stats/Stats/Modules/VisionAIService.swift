@@ -27,6 +27,7 @@ enum VisionAIError: LocalizedError {
     case serverError(Int, String)
     case noScreenshots
     case malformedJSON(String)
+    case fileReadError
 
     var errorDescription: String? {
         switch self {
@@ -48,6 +49,8 @@ enum VisionAIError: LocalizedError {
             return "No screenshots provided for processing."
         case .malformedJSON(let content):
             return "Malformed JSON response: \(content)"
+        case .fileReadError:
+            return "Failed to read PNG file from disk."
         }
     }
 }
@@ -156,6 +159,159 @@ class VisionAIService {
 
     func isOpenAIConfigured() -> Bool {
         return apiKey != nil && !apiKey!.isEmpty
+    }
+
+    // MARK: - Single Question Extraction
+
+    /// Extract a single question from a PNG file using mouse coordinates
+    /// - Parameters:
+    ///   - imageURL: URL to PNG file on disk
+    ///   - mouseCoords: The mouse coordinates (x, y) to help locate the question
+    /// - Returns: Tuple containing the question and answers, or nil if extraction fails
+    func extractSingleQuestion(from imageURL: URL, mouseCoords: (x: CGFloat, y: CGFloat)) async throws -> (question: String, answers: [String])? {
+        guard isOpenAIConfigured() else {
+            throw VisionAIError.apiKeyNotFound
+        }
+
+        print("Extracting single question from PNG file: \(imageURL.path)")
+        print("Mouse coordinates: X: \(mouseCoords.x), Y: \(mouseCoords.y)")
+
+        // Read PNG file from disk
+        guard let imageData = try? Data(contentsOf: imageURL) else {
+            print("❌ Failed to read PNG file at: \(imageURL.path)")
+            throw VisionAIError.fileReadError
+        }
+
+        // Convert to base64 for API
+        let base64Image = imageData.base64EncodedString()
+        let imageSizeKB = imageData.count / 1024
+        print("✅ PNG file read successfully (~\(imageSizeKB) KB)")
+
+        // Build the custom prompt with mouse coordinates
+        let customPrompt = """
+        My mouse coordinates are X: \(Int(mouseCoords.x)) Y: \(Int(mouseCoords.y)).
+        Which question can be seen here?
+        The image has coordinates x:0 y:0 at the bottom left corner.
+
+        Extract the question and all answer options in the EXACT same order as they appear in the screenshot (from top to bottom).
+
+        Return ONLY valid JSON in this exact format:
+        {
+          "question": "The complete question text exactly as shown",
+          "answers": ["First answer option", "Second answer option", "Third answer option", "Fourth answer option"]
+        }
+
+        Important:
+        - Include the full question text
+        - List ALL answer options in the order they appear (usually A, B, C, D or 1, 2, 3, 4)
+        - Do not reorder the answers
+        - Do not add explanations, just return the JSON
+        """
+
+        guard let url = URL(string: openAIEndpoint) else {
+            throw VisionAIError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey!)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30.0 // 30 seconds for single image
+
+        // Build the request body
+        let requestBody: [String: Any] = [
+            "model": "gpt-4o",
+            "messages": [
+                [
+                    "role": "user",
+                    "content": [
+                        ["type": "text", "text": customPrompt],
+                        ["type": "image_url", "image_url": ["url": "data:image/png;base64,\(base64Image)"]]
+                    ]
+                ]
+            ],
+            "max_tokens": 500,
+            "temperature": 0.1 // Low temperature for consistent extraction
+        ]
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+
+        // Log request size
+        let requestSize = (request.httpBody?.count ?? 0) / 1024
+        print("Sending single question extraction request (\(requestSize) KB) to OpenAI API...")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw VisionAIError.invalidResponse
+        }
+
+        print("Received response: HTTP \(httpResponse.statusCode)")
+
+        // Handle HTTP errors
+        try handleHTTPErrors(statusCode: httpResponse.statusCode, data: data)
+
+        // Parse OpenAI response
+        let openAIResponse = try JSONDecoder().decode(OpenAIResponse.self, from: data)
+
+        // Log token usage
+        if let usage = openAIResponse.usage {
+            print("Token usage - Prompt: \(usage.promptTokens), Completion: \(usage.completionTokens), Total: \(usage.totalTokens)")
+        }
+
+        guard let firstChoice = openAIResponse.choices.first else {
+            throw VisionAIError.invalidResponse
+        }
+
+        let content = firstChoice.message.content
+        print("Raw response content length: \(content.count) characters")
+
+        // Parse the single question JSON
+        return try parseSingleQuestion(from: content)
+    }
+
+    // MARK: - Single Question Parsing
+
+    private func parseSingleQuestion(from content: String) throws -> (question: String, answers: [String])? {
+        // Clean content - remove markdown code blocks if present
+        var cleanedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Remove markdown JSON code blocks
+        if cleanedContent.hasPrefix("```json") {
+            cleanedContent = cleanedContent.replacingOccurrences(of: "```json", with: "")
+        }
+        if cleanedContent.hasPrefix("```") {
+            cleanedContent = cleanedContent.replacingOccurrences(of: "```", with: "")
+        }
+        if cleanedContent.hasSuffix("```") {
+            cleanedContent = String(cleanedContent.dropLast(3))
+        }
+
+        cleanedContent = cleanedContent.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let jsonData = cleanedContent.data(using: .utf8) else {
+            print("Could not convert content to data")
+            return nil
+        }
+
+        // Parse as JSON object (single question)
+        guard let jsonObject = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+            print("Failed to parse JSON object: \(cleanedContent.prefix(200))")
+            return nil
+        }
+
+        // Extract question and answers
+        guard let question = jsonObject["question"] as? String,
+              let answers = jsonObject["answers"] as? [String],
+              !question.isEmpty,
+              !answers.isEmpty else {
+            print("Invalid question structure in response")
+            return nil
+        }
+
+        print("Extracted question: \"\(question.prefix(60))...\" (\(answers.count) answers)")
+
+        return (question: question, answers: answers)
     }
 
     // MARK: - Main Extraction Method

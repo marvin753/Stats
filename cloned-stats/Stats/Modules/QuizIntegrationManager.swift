@@ -33,6 +33,11 @@ class QuizIntegrationManager: NSObject, ObservableObject {
     private let visionService = VisionAIService()
     private var cancellables = Set<AnyCancellable>()
 
+    // MARK: - Single-Capture Flow Components
+    private let screenshotCroppingService = ScreenshotCroppingService.shared
+    private let visionAIService = VisionAIService()
+    private let questionFileManager = QuestionFileManager.shared
+
     // MARK: - GPU Module Reference (Phase 2B)
     private weak var gpuModule: GPU?
 
@@ -76,6 +81,37 @@ class QuizIntegrationManager: NSObject, ObservableObject {
      */
     func initialize() {
         print("\n🎬 [QuizIntegration] Initializing Quiz Integration Manager...")
+
+        // Request Screen Recording permission at startup
+        if #available(macOS 10.15, *) {
+            print("🔒 [QuizIntegration] Checking Screen Recording permission...")
+
+            // First check if we have permission
+            let hasPermission = CGPreflightScreenCaptureAccess()
+
+            if hasPermission {
+                print("✅ [QuizIntegration] Screen Recording permission: GRANTED")
+            } else {
+                print("⚠️  [QuizIntegration] Screen Recording permission: DENIED")
+                print("   Requesting permission...")
+
+                // Request permission (this will show system dialog)
+                let granted = CGRequestScreenCaptureAccess()
+
+                if granted {
+                    print("✅ [QuizIntegration] Permission granted by user")
+                } else {
+                    print("❌ [QuizIntegration] Permission denied by user")
+                    print("   Screenshot capture will not work until permission is granted")
+
+                    // Show notification to user
+                    showNotification(
+                        title: "Permission Required",
+                        message: "Enable Screen Recording in System Preferences → Security & Privacy → Privacy → Screen Recording"
+                    )
+                }
+            }
+        }
 
         print("🔧 [QuizIntegration] Step 1: Setting up delegates...")
         httpServer.delegate = self
@@ -510,43 +546,110 @@ class QuizIntegrationManager: NSObject, ObservableObject {
             isScraperRunning = false  // Reset flag
         }
     }
+
+    // MARK: - Notification Helper
+
+    /**
+     * Show a system notification to the user
+     * Uses UserNotifications framework for modern macOS
+     * - Parameters:
+     *   - title: Notification title
+     *   - message: Notification body message
+     */
+    private func showNotification(title: String, message: String) {
+        print("🔔 Notification: \(title) - \(message)")
+
+        // Use NSUserNotification for broader compatibility
+        // Note: NSUserNotification is deprecated but still works on macOS 10.14+
+        // For production, consider migrating to UNUserNotificationCenter
+        let notification = NSUserNotification()
+        notification.title = title
+        notification.informativeText = message
+        notification.soundName = NSUserNotificationDefaultSoundName
+
+        NSUserNotificationCenter.default.deliver(notification)
+    }
 }
 
 // MARK: - Keyboard Shortcut Delegate
 extension QuizIntegrationManager: KeyboardShortcutDelegate {
     /**
-     * Called when Cmd+Option+O is pressed - Capture screenshot
+     * Called when Cmd+Option+O is pressed - Capture screenshot and extract question
+     * New single-capture flow:
+     * 1. Capture blue box at mouse position
+     * 2. Call OpenAI to extract question
+     * 3. Save to file (with 14-question limit auto-rotation)
+     * 4. Show notification with result
      */
     func onCaptureScreenshot() {
         print("\n" + String(repeating: "=", count: 60))
         print("📸 [QuizIntegration] CAPTURE SCREENSHOT (Cmd+Option+O)")
         print(String(repeating: "=", count: 60))
 
-        // Check screen recording permission
-        guard screenshotCapture.hasScreenRecordingPermission() else {
-            print("⚠️  Screen recording permission not granted")
-            print("   First use will show permission dialog - this is normal")
+        // Step 1: Capture blue box at mouse position
+        guard let result = screenshotCroppingService.captureAndCropScreenshot() else {
+            print("❌ Could not capture blue box at mouse position")
+            showNotification(title: "Capture Failed", message: "Could not capture blue box at mouse position")
             return
         }
 
-        // Capture screenshot
-        guard let base64Image = screenshotCapture.captureMainDisplay() else {
-            print("❌ Failed to capture screenshot")
+        guard let imageURL = result.imageURL else {
+            print("❌ Screenshot was captured but image URL is nil")
+            showNotification(title: "Capture Failed", message: "Failed to save screenshot image")
             return
         }
 
-        // Add to accumulation
-        let result = screenshotManager.addScreenshot(base64Image)
+        let mouseCoords = result.mouseCoords
 
-        if result.success {
-            let count = screenshotManager.getScreenshotCount()
-            print("✅ Screenshot \(count) captured successfully")
+        print("✅ Blue box captured successfully")
+        print("   Mouse position: X=\(Int(mouseCoords.x)), Y=\(Int(mouseCoords.y))")
+        print("   Image saved to: \(imageURL.path)")
 
-            if let warning = result.warning {
-                print("⚠️  \(warning)")
+        // Step 2: Call OpenAI to extract question (async)
+        Task {
+            do {
+                print("🤖 Calling OpenAI Vision API to extract question...")
+
+                guard let extracted = try await visionAIService.extractSingleQuestion(
+                    from: imageURL,
+                    mouseCoords: (x: mouseCoords.x, y: mouseCoords.y)
+                ) else {
+                    print("❌ Could not extract question from image")
+                    showNotification(title: "Extraction Failed", message: "Could not extract question from image")
+                    return
+                }
+
+                print("✅ Question extracted successfully")
+                print("   Question: \(extracted.question.prefix(60))...")
+                print("   Answers: \(extracted.answers.count) options")
+
+                // Step 3: Save to file
+                let (filePath, questionIndex) = questionFileManager.addQuestion(
+                    question: extracted.question,
+                    answers: extracted.answers,
+                    coordinates: (x: Double(mouseCoords.x), y: Double(mouseCoords.y))
+                )
+
+                print("💾 Question saved to file:")
+                print("   File: \(filePath)")
+                print("   Question index: \(questionIndex)")
+
+                // Step 4: Show success notification
+                let fileInfo = questionFileManager.getCurrentFileInfo()
+                let truncatedQuestion = String(extracted.question.prefix(50))
+                showNotification(
+                    title: "Question Captured (\(fileInfo.questionCount)/14)",
+                    message: "Q: \(truncatedQuestion)..."
+                )
+
+                print(String(repeating: "=", count: 60))
+                print("✅ SINGLE-CAPTURE FLOW COMPLETE")
+                print(String(repeating: "=", count: 60) + "\n")
+
+            } catch {
+                print("❌ Error during question extraction: \(error.localizedDescription)")
+                showNotification(title: "Error", message: error.localizedDescription)
             }
-        } else {
-            print("❌ Failed to add screenshot (maximum reached)")
         }
     }
 
