@@ -1,0 +1,355 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🍎 Build & Run macOS App",
+      "type": "shell",
+      "command": "xcodebuild -scheme Stats -configuration Debug && open build/Debug/Stats.app",
+      "cwd": "${workspaceFolder}/cloned-stats",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🍎 Build macOS App (Debug)",
+      "type": "shell",
+      "command": "xcodebuild -scheme Stats -configuration Debug -verbose",
+      "cwd": "${workspaceFolder}/cloned-stats",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🍎 Build macOS App (Release)",
+      "type": "shell",
+      "command": "xcodebuild -scheme Stats -configuration Release",
+      "cwd": "${workspaceFolder}/cloned-stats",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🍎 Clean Build & Run macOS App",
+      "type": "shell",
+      "command": "xcodebuild -scheme Stats -configuration Debug clean build && open build/Debug/Stats.app",
+      "cwd": "${workspaceFolder}/cloned-stats",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🍎 Run macOS App (Already Built)",
+      "type": "shell",
+      "command": "open build/Debug/Stats.app",
+      "cwd": "${workspaceFolder}/cloned-stats",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🍎 Swift Build Tests",
+      "type": "shell",
+      "command": "xcodebuild -scheme Stats -configuration Debug test",
+      "cwd": "${workspaceFolder}/cloned-stats",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🍎 Open Xcode Project",
+      "type": "shell",
+      "command": "open ${workspaceFolder}/cloned-stats/Stats.xcodeproj",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 Start Backend Server",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/backend && npm start",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*Backend.*running.*",
+          "endsPattern": "^.*Backend.*running.*"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "🧪 Run All Tests",
+      "type": "shell",
+      "command": "npm test",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": true
+      },
+      "group": "test"
+    },
+    {
+      "label": "🔒 Run Security Tests",
+      "type": "shell",
+      "command": "npm test -- backend/tests/security.test.js",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": true
+      },
+      "group": "test"
+    },
+    {
+      "label": "🔐 Validate Security Fixes",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/test-security-fixes.sh",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "test"
+    },
+    {
+      "label": "📊 Generate Test Coverage Report",
+      "type": "shell",
+      "command": "npm test -- --coverage",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "test"
+    },
+    {
+      "label": "📦 Install Backend Dependencies",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/backend && npm install",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "group": "build"
+    },
+    {
+      "label": "📦 Install Root Dependencies",
+      "type": "shell",
+      "command": "npm install",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "build"
+    },
+    {
+      "label": "🐳 Start Docker Compose (Development)",
+      "type": "shell",
+      "command": "docker-compose up -d",
+      "cwd": "${workspaceFolder}",
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "group": "build"
+    },
+    {
+      "label": "🐳 Stop Docker Compose",
+      "type": "shell",
+      "command": "docker-compose down",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "group": "build"
+    },
+    {
+      "label": "⚙️ Setup Environment Variables",
+      "type": "shell",
+      "command": "bash -c 'if [ ! -f ${workspaceFolder}/.env ]; then echo \"Copying .env.example to .env...\" && cp ${workspaceFolder}/.env.example ${workspaceFolder}/.env && echo \"✅ .env created - please edit with your settings\" && echo && echo \"Required settings:\" && grep -E \"^[A-Z_]+\" ${workspaceFolder}/.env.example | head -10; else echo \"✅ .env already exists\"; fi'",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "build"
+    },
+    {
+      "label": "📝 Check Environment Setup",
+      "type": "shell",
+      "command": "bash -c 'echo \"═══════════════════════════════════════════\" && echo \"Environment Check\" && echo \"═══════════════════════════════════════════\" && echo && echo \"Node version:\" && node --version && echo && echo \"npm version:\" && npm --version && echo && echo \"Docker version:\" && docker --version 2>/dev/null || echo \"⚠️  Docker not found\" && echo && echo \".env status:\" && ls -la ${workspaceFolder}/.env 2>/dev/null && echo \"✅ .env exists\" || echo \"⚠️  .env not found\" && echo && echo \"Xcode:\" && xcode-select -p 2>/dev/null || echo \"⚠️  Xcode not found\"'",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "build"
+    },
+    {
+      "label": "🔍 Check Backend Health",
+      "type": "shell",
+      "command": "bash -c 'sleep 2 && echo \"Testing Backend...\" && curl -s http://localhost:3000/health | jq . 2>/dev/null || echo \"⚠️  Backend not responding - make sure it is running with: 🚀 Start Backend Server\"'",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "test"
+    },
+    {
+      "label": "🔗 Test API Connection",
+      "type": "shell",
+      "command": "bash -c 'echo \"Testing API endpoints...\" && echo && echo \"1. Health Check:\" && curl -s -X GET http://localhost:3000/health | jq . 2>/dev/null && echo && echo \"2. API Key Test (will fail without valid key):\" && curl -s -X POST http://localhost:3000/api/analyze -H \"Content-Type: application/json\" -H \"X-API-Key: test-key\" -d \"{\\\"questions\\\":[]}\" | jq . 2>/dev/null || echo \"Expected: Auth error (no valid key configured)\"'",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "test"
+    },
+    {
+      "label": "📱 Start Scraper",
+      "type": "shell",
+      "command": "node ${workspaceFolder}/scraper.js",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "build"
+    },
+    {
+      "label": "🧹 Clean Node Modules & Rebuild",
+      "type": "shell",
+      "command": "bash -c 'echo \"Cleaning...\" && rm -rf node_modules backend/node_modules package-lock.json backend/package-lock.json && echo \"Reinstalling...\" && npm install && cd backend && npm install && echo \"✅ Done\"'",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "build"
+    },
+    {
+      "label": "📚 View Project Structure",
+      "type": "shell",
+      "command": "bash -c 'echo \"Project Structure:\" && echo && tree -L 2 -I \"node_modules|build|dist\" ${workspaceFolder} 2>/dev/null || find ${workspaceFolder} -maxdepth 2 -type d ! -name \"node_modules\" ! -name \"build\" ! -name \"dist\" ! -path \"*/.*\" | sort'",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "build"
+    },
+    {
+      "label": "📖 View Available Documentation",
+      "type": "shell",
+      "command": "bash -c 'echo \"📚 Available Documentation Files:\" && echo && ls -1 ${workspaceFolder}/*.md 2>/dev/null | xargs -I {} basename {} && echo && echo \"Key files to read:\" && echo \"  1. FINAL_VERIFICATION_AND_AUDIT_REPORT.md\" && echo \"  2. SECURITY_FIXES.md\" && echo \"  3. frontend/INTEGRATION_GUIDE.md\" && echo \"  4. TESTING_COMPLETE.md\"'",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "group": "build"
+    },
+    {
+      "label": "🎯 Quick Start: Full Setup & Run",
+      "type": "shell",
+      "command": "bash -c 'echo \"╔════════════════════════════════════════════════════╗\" && echo \"║   QUIZ STATS - COMPLETE SETUP & RUN                 ║\" && echo \"╚════════════════════════════════════════════════════╝\" && echo && echo \"1️⃣  Checking environment...\" && node --version && npm --version && echo && echo \"2️⃣  Installing dependencies...\" && npm install > /dev/null 2>&1 && cd backend && npm install > /dev/null 2>&1 && cd .. && echo \"✅ Dependencies installed\" && echo && echo \"3️⃣  Environment setup...\" && [ -f .env ] && echo \"✅ .env exists\" || echo \"⚠️  Creating .env from template...\" && cp .env.example .env && echo \"✅ .env created\" && echo && echo \"4️⃣  Ready to run!\" && echo && echo \"🚀 Next steps:\" && echo \"   Option A - Backend Only:\" && echo \"     Run: 🚀 Start Backend Server\" && echo && echo \"   Option B - Full Stack:\" && echo \"     1. Run: 🚀 Start Backend Server (in Terminal 1)\" && echo \"     2. Run: 🍎 Build & Run macOS App (in Terminal 2)\" && echo && echo \"   Option C - With Tests:\" && echo \"     1. Run: 🚀 Start Backend Server\" && echo \"     2. Run: 🧪 Run All Tests\"'",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new",
+        "clear": true
+      },
+      "group": "build"
+    }
+  ],
+  "inputs": []
+}

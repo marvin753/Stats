@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti-Bot Detection Tests - Chrome CDP Security Audit</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 15px 20px;
+            margin: 12px 0;
+            border-radius: 6px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .test-result:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .pass {
+            background: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+        .fail {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 5px solid #17a2b8;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+        .overall-result {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        code {
+            background: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+        .test-name {
+            flex: 1;
+        }
+        .test-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            background: rgba(0,0,0,0.05);
+            padding: 5px 10px;
+            border-radius: 4px;
+            max-width: 500px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        .timing-section {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+        .advanced-section {
+            background: #e7f3ff;
+            border-left: 5px solid #2196F3;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Anti-Bot Detection Tests - Chrome CDP Security Audit</h1>
+
+        <div class="info">
+            <strong>Purpose:</strong> This comprehensive test page validates that Chrome launched with CDP and stealth flags is completely undetectable by anti-automation systems.<br><br>
+            <strong>Test Environment:</strong> Chrome with <code>--disable-blink-features=AutomationControlled</code> and custom user-agent<br>
+            <strong>Expected Result:</strong> All tests should show <strong style="color: #28a745;">✅ PASS</strong> (green)
+        </div>
+
+        <h2>🔍 Core Detection Tests</h2>
+        <div id="core-results"></div>
+
+        <h2>🚨 Advanced Detection Tests</h2>
+        <div id="advanced-results"></div>
+
+        <h2>⏱️ Timing Attack Tests</h2>
+        <div id="timing-results"></div>
+
+        <h2>📊 Browser Fingerprint</h2>
+        <div id="fingerprint-table"></div>
+
+        <div id="overall-result"></div>
+
+        <div class="info">
+            <strong>Security Assessment:</strong><br>
+            <span id="security-assessment"></span>
+        </div>
+    </div>
+
+    <script>
+        const coreResultsDiv = document.getElementById('core-results');
+        const advancedResultsDiv = document.getElementById('advanced-results');
+        const timingResultsDiv = document.getElementById('timing-results');
+        const fingerprintDiv = document.getElementById('fingerprint-table');
+        const overallDiv = document.getElementById('overall-result');
+        const assessmentDiv = document.getElementById('security-assessment');
+
+        const results = [];
+
+        function addTest(container, name, condition, actual, category = 'core') {
+            const div = document.createElement('div');
+            div.className = `test-result ${condition ? 'pass' : 'fail'}`;
+
+            const icon = condition ? '✅' : '❌';
+            const status = condition ? 'PASS' : 'FAIL';
+
+            div.innerHTML = `
+                <span class="icon">${icon}</span>
+                <span class="test-name"><strong>${status}:</strong> ${name}</span>
+                <span class="test-value" title="${JSON.stringify(actual)}">${JSON.stringify(actual)}</span>
+            `;
+            container.appendChild(div);
+
+            results.push({ name, condition, actual, category });
+        }
+
+        // ==================== CORE DETECTION TESTS ====================
+
+        // Test 1: navigator.webdriver (CRITICAL)
+        const webdriverUndefined = navigator.webdriver === undefined;
+        addTest(coreResultsDiv, 'navigator.webdriver is undefined', webdriverUndefined, navigator.webdriver);
+
+        // Test 2: Chrome runtime (automation extension detection)
+        const hasAutomationExtensions = window.chrome && window.chrome.runtime;
+        addTest(coreResultsDiv, 'No chrome.runtime exposed', !hasAutomationExtensions, hasAutomationExtensions ? 'Detected' : 'Not detected');
+
+        // Test 3: User agent check
+        const userAgent = navigator.userAgent;
+        const hasHeadlessChrome = userAgent.includes('HeadlessChrome');
+        addTest(coreResultsDiv, 'User agent does not contain "HeadlessChrome"', !hasHeadlessChrome, userAgent.substring(0, 50) + '...');
+
+        // Test 4: Webdriver attribute in DOM
+        const webdriverAttribute = document.documentElement.getAttribute('webdriver');
+        addTest(coreResultsDiv, 'No "webdriver" attribute in DOM', webdriverAttribute === null, webdriverAttribute);
+
+        // Test 5: Plugins available
+        const pluginsAvailable = navigator.plugins && navigator.plugins.length > 0;
+        addTest(coreResultsDiv, 'Browser has plugins', pluginsAvailable, navigator.plugins.length);
+
+        // Test 6: Languages available
+        const languagesAvailable = navigator.languages && navigator.languages.length > 0;
+        addTest(coreResultsDiv, 'Browser has languages', languagesAvailable, navigator.languages);
+
+        // Test 7: Webdriver in plugins
+        const hasWebdriverPlugin = Array.from(navigator.plugins || []).some(
+            p => p.name.toLowerCase().includes('webdriver')
+        );
+        addTest(coreResultsDiv, 'No webdriver plugin detected', !hasWebdriverPlugin, hasWebdriverPlugin ? 'Detected' : 'Not detected');
+
+        // ==================== ADVANCED DETECTION TESTS ====================
+
+        // Test 8: Permissions API (automation often blocks this)
+        let permissionsWork = false;
+        try {
+            navigator.permissions.query({name: 'notifications'}).then(() => {
+                permissionsWork = true;
+                addTest(advancedResultsDiv, 'Permissions API functional', permissionsWork, 'Working');
+            }).catch(() => {
+                addTest(advancedResultsDiv, 'Permissions API functional', false, 'Blocked');
+            });
+        } catch (e) {
+            addTest(advancedResultsDiv, 'Permissions API functional', false, e.message);
+        }
+
+        // Test 9: Window dimensions (automation often has unrealistic values)
+        const windowOuterWidth = window.outerWidth;
+        const windowInnerWidth = window.innerWidth;
+        const widthDiff = windowOuterWidth - windowInnerWidth;
+        const reasonableWidthDiff = widthDiff > 0 && widthDiff < 100;
+        addTest(advancedResultsDiv, 'Reasonable window width difference', reasonableWidthDiff, `${widthDiff}px`);
+
+        // Test 10: Connection type (automation often shows unknown)
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const hasConnection = connection !== undefined;
+        addTest(advancedResultsDiv, 'Network Information API available', hasConnection, hasConnection ? connection.effectiveType : 'Not available');
+
+        // Test 11: Hardware concurrency
+        const hardwareConcurrency = navigator.hardwareConcurrency;
+        const realisticConcurrency = hardwareConcurrency > 0 && hardwareConcurrency <= 32;
+        addTest(advancedResultsDiv, 'Realistic CPU core count', realisticConcurrency, hardwareConcurrency);
+
+        // Test 12: Device memory
+        const deviceMemory = navigator.deviceMemory;
+        const hasDeviceMemory = deviceMemory !== undefined;
+        addTest(advancedResultsDiv, 'Device memory reported', hasDeviceMemory, deviceMemory ? `${deviceMemory} GB` : 'Not available');
+
+        // Test 13: Battery API
+        if (navigator.getBattery) {
+            navigator.getBattery().then(battery => {
+                const hasBattery = battery !== undefined;
+                addTest(advancedResultsDiv, 'Battery API functional', hasBattery, hasBattery ? `${Math.round(battery.level * 100)}%` : 'Not available');
+            }).catch(() => {
+                addTest(advancedResultsDiv, 'Battery API functional', false, 'Not available');
+            });
+        } else {
+            addTest(advancedResultsDiv, 'Battery API functional', true, 'Not available (desktop)');
+        }
+
+        // Test 14: WebGL vendor
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                const notSwiftShader = !renderer.includes('SwiftShader');
+                addTest(advancedResultsDiv, 'Not using software rendering (SwiftShader)', notSwiftShader, renderer.substring(0, 40));
+            } else {
+                addTest(advancedResultsDiv, 'WebGL debug info available', false, 'Extension blocked');
+            }
+        }
+
+        // Test 15: Screen depth
+        const screenDepth = window.screen.colorDepth;
+        const realisticDepth = screenDepth >= 24;
+        addTest(advancedResultsDiv, 'Realistic screen color depth', realisticDepth, `${screenDepth}-bit`);
+
+        // ==================== TIMING ATTACK TESTS ====================
+
+        // Test 16: Date.now() vs performance.now() consistency
+        const date1 = Date.now();
+        const perf1 = performance.now();
+        setTimeout(() => {
+            const date2 = Date.now();
+            const perf2 = performance.now();
+            const dateDiff = date2 - date1;
+            const perfDiff = perf2 - perf1;
+            const consistent = Math.abs(dateDiff - perfDiff) < 50;
+            addTest(timingResultsDiv, 'Date.now() and performance.now() consistent', consistent, `Δ ${Math.abs(dateDiff - perfDiff).toFixed(2)}ms`, 'timing');
+        }, 100);
+
+        // Test 17: setTimeout precision
+        const expectedDelay = 50;
+        const start = performance.now();
+        setTimeout(() => {
+            const actualDelay = performance.now() - start;
+            const accurate = Math.abs(actualDelay - expectedDelay) < 20;
+            addTest(timingResultsDiv, 'setTimeout precision normal', accurate, `${actualDelay.toFixed(2)}ms (expected ${expectedDelay}ms)`, 'timing');
+        }, expectedDelay);
+
+        // Test 18: requestAnimationFrame timing
+        let rafTimestamps = [];
+        let rafCount = 0;
+        function testRAF(timestamp) {
+            rafTimestamps.push(timestamp);
+            rafCount++;
+            if (rafCount < 5) {
+                requestAnimationFrame(testRAF);
+            } else {
+                const intervals = [];
+                for (let i = 1; i < rafTimestamps.length; i++) {
+                    intervals.push(rafTimestamps[i] - rafTimestamps[i-1]);
+                }
+                const avgInterval = intervals.reduce((a,b) => a+b, 0) / intervals.length;
+                const smooth = avgInterval > 10 && avgInterval < 25; // ~16.67ms for 60fps
+                addTest(timingResultsDiv, 'requestAnimationFrame timing smooth', smooth, `${avgInterval.toFixed(2)}ms avg`, 'timing');
+            }
+        }
+        requestAnimationFrame(testRAF);
+
+        // ==================== BROWSER FINGERPRINT ====================
+
+        setTimeout(() => {
+            const fingerprint = {
+                'User Agent': navigator.userAgent,
+                'Platform': navigator.platform,
+                'Language': navigator.language,
+                'Languages': navigator.languages.join(', '),
+                'Hardware Concurrency': navigator.hardwareConcurrency,
+                'Device Memory': navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'N/A',
+                'Screen Resolution': `${screen.width}x${screen.height}`,
+                'Screen Color Depth': `${screen.colorDepth}-bit`,
+                'Timezone Offset': `UTC${(-new Date().getTimezoneOffset()/60 >= 0 ? '+' : '')}${-new Date().getTimezoneOffset()/60}`,
+                'Cookies Enabled': navigator.cookieEnabled,
+                'Do Not Track': navigator.doNotTrack,
+                'Online Status': navigator.onLine,
+                'Plugins': navigator.plugins.length,
+                'Touch Points': navigator.maxTouchPoints,
+            };
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${Object.entries(fingerprint).map(([key, value]) => `
+                        <tr>
+                            <td><strong>${key}</strong></td>
+                            <td><code>${value}</code></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            fingerprintDiv.appendChild(table);
+
+            // ==================== OVERALL ASSESSMENT ====================
+
+            const allPassed = results.every(r => r.condition);
+            const passedCount = results.filter(r => r.condition).length;
+            const totalCount = results.length;
+            const passRate = (passedCount / totalCount * 100).toFixed(1);
+
+            overallDiv.className = `overall-result ${allPassed ? 'pass' : 'fail'}`;
+            overallDiv.innerHTML = allPassed
+                ? `🎉 STEALTH MODE FULLY ACTIVE - ${passedCount}/${totalCount} tests passed (${passRate}%)`
+                : `⚠️ STEALTH MODE COMPROMISED - ${passedCount}/${totalCount} tests passed (${passRate}%)`;
+
+            // Security assessment
+            let assessment = '';
+            if (passRate >= 95) {
+                assessment = `<strong style="color: #28a745;">✅ EXCELLENT:</strong> The Chrome CDP service is operating with maximum stealth. Detection risk is <strong>MINIMAL</strong>. The browser appears indistinguishable from a regular user's Chrome instance.`;
+            } else if (passRate >= 85) {
+                assessment = `<strong style="color: #ffc107;">⚠️ GOOD:</strong> The Chrome CDP service has strong stealth capabilities with minor detectable signatures. Detection risk is <strong>LOW</strong>. Most anti-bot systems will not flag this browser.`;
+            } else if (passRate >= 70) {
+                assessment = `<strong style="color: #fd7e14;">⚠️ MODERATE:</strong> The Chrome CDP service has some detectable automation signatures. Detection risk is <strong>MEDIUM</strong>. Advanced anti-bot systems may flag this browser.`;
+            } else {
+                assessment = `<strong style="color: #dc3545;">❌ POOR:</strong> The Chrome CDP service has significant detectable automation signatures. Detection risk is <strong>HIGH</strong>. Most anti-bot systems will likely flag this browser.`;
+            }
+
+            assessmentDiv.innerHTML = assessment;
+
+            // Console summary
+            console.log('=== ANTI-BOT DETECTION TEST RESULTS ===');
+            console.log(`Pass Rate: ${passRate}%`);
+            console.log(`Tests Passed: ${passedCount}/${totalCount}`);
+            console.log('Failed Tests:', results.filter(r => !r.condition).map(r => r.name));
+            console.log('Browser Fingerprint:', fingerprint);
+        }, 2000);
+    </script>
+</body>
+</html>

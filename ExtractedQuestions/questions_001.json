@@ -1,0 +1,32 @@
+{
+  "createdAt" : "2025-11-27T17:48:22Z",
+  "fileNumber" : 1,
+  "questions" : [
+    {
+      "answers" : [
+        "orange",
+        "green"
+      ],
+      "index" : 1,
+      "mouseCoordinates" : {
+        "x" : 827.03515625,
+        "y" : 168.91015625
+      },
+      "question" : "What color do you get when you mix red and yellow?",
+      "timestamp" : "2025-11-27T17:48:22Z"
+    },
+    {
+      "answers" : [
+        "orange",
+        "green"
+      ],
+      "index" : 2,
+      "mouseCoordinates" : {
+        "x" : 868.98828125,
+        "y" : 244.4609375
+      },
+      "question" : "What color do you get when you mix red and yellow?",
+      "timestamp" : "2025-11-27T17:48:29Z"
+    }
+  ]
+}
