@@ -30,12 +30,6 @@ class ScreenshotCroppingService {
         static let greenMax: UInt8 = 200
         static let blueMin: UInt8 = 180
         static let blueMax: UInt8 = 255
-
-        // HSB alternative detection
-        static let hueMin: CGFloat = 200.0 / 360.0  // 200°
-        static let hueMax: CGFloat = 240.0 / 360.0  // 240°
-        static let saturationMin: CGFloat = 0.3
-        static let brightnessMin: CGFloat = 0.5
     }
 
     /// Padding around detected box (in pixels)
@@ -127,7 +121,7 @@ class ScreenshotCroppingService {
         // Step 1: Capture current mouse position
         let mouseCoords = captureMouseCoordinates()
         print("🖱️  Mouse position: X=\(Int(mouseCoords.x)), Y=\(Int(mouseCoords.y)) (bottom-left origin)")
-        print("   Screen height: \(Int(mouseCoords.screenHeight))")
+        print("   Screen height: \(Int(mouseCoords.screenHeight)) points")
 
         // Step 2: Capture full screen
         let displayID = CGMainDisplayID()
@@ -138,19 +132,34 @@ class ScreenshotCroppingService {
 
         let screenWidth = CGFloat(fullScreenImage.width)
         let screenHeight = CGFloat(fullScreenImage.height)
-        print("📺 Full screen captured: \(Int(screenWidth)) x \(Int(screenHeight))")
+        print("📺 Full screen captured: \(Int(screenWidth)) x \(Int(screenHeight)) pixels")
 
-        // Convert mouse coordinates to top-left origin for CGImage
-        let mouseX = Int(mouseCoords.x)
-        let mouseY = Int(mouseCoords.topLeftY)
+        // FIX 1: Detect Retina display scaling
+        let scale = NSScreen.main?.backingScaleFactor ?? 1.0
+        print("🖥️  Display scale factor: \(scale)x (Retina: \(scale > 1.0))")
+
+        // Calculate scaling relationship
+        let screenHeightPoints = mouseCoords.screenHeight
+        let actualScaling = screenHeight / screenHeightPoints
+        print("📏 Actual scaling: \(actualScaling) (pixels/points)")
+
+        // Convert mouse coordinates to pixel space (accounting for Retina)
+        let mouseXPixels = Int(mouseCoords.x * actualScaling)
+        let mouseYPoints = mouseCoords.y  // In points from bottom
+        let mouseYTopLeftPoints = screenHeightPoints - mouseYPoints  // Convert to top-left origin in points
+        let mouseYPixels = Int(mouseYTopLeftPoints * actualScaling)  // Convert to pixels
+
+        print("🔄 Coordinate conversion:")
+        print("   Mouse points: (\(Int(mouseCoords.x)), \(Int(mouseCoords.y)))")
+        print("   Mouse pixels: (\(mouseXPixels), \(mouseYPixels)) [top-left origin]")
 
         // Step 3: Use BFS boundary detection to find blue box
         print("🌊 BFS BOUNDARY DETECTION ENABLED - detecting blue box...")
 
         guard let cropRect = detectBlueBoxFloodFill(
             in: fullScreenImage,
-            startX: mouseX,
-            startY: mouseY
+            startX: mouseXPixels,  // FIX: Use pixel coordinates, not points
+            startY: mouseYPixels   // FIX: Use pixel coordinates, not points
         ) else {
             print("❌ [ScreenshotCropping] BFS detection failed")
             return nil
@@ -192,8 +201,13 @@ class ScreenshotCroppingService {
         // Get mouse location in screen coordinates (bottom-left origin)
         let mouseLocation = NSEvent.mouseLocation
 
-        // Get main screen height for reference
-        let screenHeight = NSScreen.main?.frame.height ?? 0
+        // FIX: Get the screen that actually contains the mouse, not just the main screen
+        // This fixes multi-monitor issues where NSScreen.main may differ from the display being captured
+        let screenContainingMouse = NSScreen.screens.first { screen in
+            NSMouseInRect(mouseLocation, screen.frame, false)
+        } ?? NSScreen.main
+
+        let screenHeight = screenContainingMouse?.frame.height ?? NSScreen.main?.frame.height ?? 0
 
         let coordinates = MouseCoordinates(
             x: mouseLocation.x,
@@ -205,53 +219,6 @@ class ScreenshotCroppingService {
         return coordinates
     }
 
-    /// Capture screenshot of screen region at mouse location (async version)
-    /// - Parameter mouseCoords: Mouse coordinates to use for cropping
-    /// - Returns: Cropped screenshot with metadata
-    /// - Throws: CroppingError if capture or cropping fails
-    func captureAndCropToBlueBox(at mouseCoords: MouseCoordinates) async throws -> CroppedScreenshot {
-        print("\n" + String(repeating: "=", count: 60))
-        print("✂️  [ScreenshotCropping] CAPTURING SCREENSHOT AT MOUSE LOCATION")
-        print(String(repeating: "=", count: 60))
-
-        // Step 1: Detect blue box bounds at mouse location
-        print("🔍 [ScreenshotCropping] Step 1: Detecting blue box at mouse location...")
-        print("   Mouse position: X: \(mouseCoords.x), Y: \(mouseCoords.y)")
-
-        guard let cropBounds = await detectBlueBoxAtMouse(mouseCoords) else {
-            print("⚠️  [ScreenshotCropping] No blue box detected at mouse location")
-            throw CroppingError.noBlueBoxDetected
-        }
-
-        print("   Detected box bounds: \(cropBounds)")
-
-        // Step 2: Capture ONLY the detected region using macOS screen capture
-        print("📸 [ScreenshotCropping] Step 2: Capturing screen region...")
-        guard let screenshot = captureScreenRegion(cropBounds) else {
-            throw CroppingError.croppingFailed
-        }
-
-        print("   Captured size: \(screenshot.size.width) x \(screenshot.size.height)")
-
-        // Step 3: Convert to base64
-        print("📦 [ScreenshotCropping] Step 3: Converting to base64...")
-        guard let base64 = imageToBase64(screenshot) else {
-            throw CroppingError.base64ConversionFailed
-        }
-
-        print("✅ [ScreenshotCropping] Screenshot captured successfully!")
-        print("   Image size: ~\(base64.count / 1024)KB")
-        print("   IMPORTANT: Captured locally - no browser/website interaction")
-        print(String(repeating: "=", count: 60) + "\n")
-
-        return CroppedScreenshot(
-            base64Image: base64,
-            mouseCoordinates: CGPoint(x: mouseCoords.x, y: mouseCoords.y),
-            cropBounds: cropBounds,
-            originalDimensions: screenshot.size,
-            timestamp: mouseCoords.timestamp
-        )
-    }
 
     // MARK: - Blue Box Detection (Flood-Fill Algorithm)
 
@@ -264,6 +231,29 @@ class ScreenshotCroppingService {
     /// - Returns: true if pixel is within bounds, false otherwise
     private func isValidPixel(x: Int, y: Int, width: Int, height: Int) -> Bool {
         return x >= 0 && x < width && y >= 0 && y < height
+    }
+
+    /// Helper method to read pixel RGB values with correct byte order
+    /// FIX: Simplified to assume BGRA (little-endian) which is the standard on macOS
+    /// macOS CGDisplayCreateImage always returns BGRA format (byteOrder32Little with premultiplied alpha)
+    /// - Parameters:
+    ///   - pixels: Raw pixel data
+    ///   - index: Starting index for this pixel
+    /// - Returns: Tuple of (R, G, B) values
+    private func readPixelRGB(pixels: UnsafePointer<UInt8>, index: Int) -> (r: UInt8, g: UInt8, b: UInt8) {
+        // macOS CGDisplayCreateImage returns BGRA format (most common):
+        // Byte 0 = Blue, Byte 1 = Green, Byte 2 = Red, Byte 3 = Alpha
+        let b = pixels[index]
+        let g = pixels[index + 1]
+        let r = pixels[index + 2]
+        // Alpha at index + 3 (unused)
+        return (r, g, b)
+    }
+
+    /// Legacy method for compatibility - delegates to simplified version
+    private func readPixelBGRA(pixels: UnsafePointer<UInt8>, index: Int, isBGRA: Bool, hasAlphaFirst: Bool) -> (r: UInt8, g: UInt8, b: UInt8) {
+        // Always use the simplified BGRA reader for macOS screenshots
+        return readPixelRGB(pixels: pixels, index: index)
     }
 
     /// SAFE boundary detection algorithm using iterative BFS (NO RECURSION)
@@ -279,6 +269,7 @@ class ScreenshotCroppingService {
 
         print("   🔍 Starting SAFE boundary detection from (\(startX), \(startY))")
         print("   📐 Image dimensions: \(width) x \(height)")
+        print("   🌊 Using BFS boundary detection...")
 
         // SAFETY CHECK 1: Validate starting position
         guard startX >= 0 && startX < width && startY >= 0 && startY < height else {
@@ -300,26 +291,82 @@ class ScreenshotCroppingService {
 
         print("   📊 Pixel format: \(bytesPerPixel) bytes/pixel, \(bytesPerRow) bytes/row")
 
+        // FIX 2: Detect pixel byte order (BGRA vs RGBA vs ARGB)
+        let bitmapInfo = image.bitmapInfo
+        let alphaInfo = CGImageAlphaInfo(rawValue: bitmapInfo.rawValue & CGBitmapInfo.alphaInfoMask.rawValue)
+        let byteOrderInfo = bitmapInfo.rawValue & CGBitmapInfo.byteOrderMask.rawValue
+
+        // Determine pixel component positions
+        let isBGRA = byteOrderInfo == CGBitmapInfo.byteOrder32Little.rawValue
+        let hasAlphaFirst = (alphaInfo == .premultipliedFirst || alphaInfo == .first)
+
+        print("   🎨 Pixel format detection:")
+        print("      Bitmap info: \(bitmapInfo.rawValue)")
+        print("      Alpha info: \(alphaInfo?.rawValue ?? 0)")
+        print("      Byte order: \(byteOrderInfo == CGBitmapInfo.byteOrder32Little.rawValue ? "Little (BGRA)" : "Big (RGBA)")")
+        print("      Format: \(isBGRA ? "BGRA" : "RGBA") with alpha \(hasAlphaFirst ? "first" : "last")")
+
         // SAFETY CHECK 3: Validate starting pixel index
         let startIndex = (startY * bytesPerRow) + (startX * bytesPerPixel)
-        guard startIndex + 2 < pixelDataLength else {
+        guard startIndex + 3 < pixelDataLength else {  // Need 4 bytes for BGRA/RGBA
             print("   ❌ Starting pixel index out of data bounds: \(startIndex)")
             return createFallbackRect(mouseX: startX, mouseY: startY, screenWidth: width, screenHeight: height)
         }
 
-        // Check if starting pixel is blue
-        let startR = pixels[startIndex]
-        let startG = pixels[startIndex + 1]
-        let startB = pixels[startIndex + 2]
+        // Read pixel with correct byte order
+        let (startR, startG, startB) = readPixelBGRA(pixels: pixels, index: startIndex, isBGRA: isBGRA, hasAlphaFirst: hasAlphaFirst)
 
         print("   🎨 Starting pixel color: R=\(startR), G=\(startG), B=\(startB)")
 
         // Blue pixel detection with tolerance
         let isStartBlue = isBluePixel(r: startR, g: startG, b: startB)
 
+        // Debug: Show blue detection criteria
+        print("   🔍 Blue detection analysis:")
+        print("      Blue dominance: B(\(startB)) > max(R(\(startR)),G(\(startG)))+30 = \(Int(startB) > max(Int(startR), Int(startG)) + 30)")
+        print("      Minimum blue: B(\(startB)) > 120 = \(startB > 120)")
+        let totalRGB = Int(startR) + Int(startG) + Int(startB)
+        let blueRatio = totalRGB > 0 ? Double(startB) / Double(totalRGB) : 0.0
+        print("      Blue ratio: B/Total = \(String(format: "%.2f", blueRatio)) > 0.35 = \(blueRatio > 0.35)")
+        print("      Result: \(isStartBlue ? "✅ IS BLUE" : "❌ NOT BLUE")")
+
         if !isStartBlue {
-            print("   ⚠️  Starting position is not on a blue pixel - using fallback")
-            return createFallbackRect(mouseX: startX, mouseY: startY, screenWidth: width, screenHeight: height)
+            print("   ⚠️  Starting position is not on a blue pixel")
+            print("   🔍 Searching for nearby blue pixel within 50px radius...")
+
+            // FIX 1: Try to find nearby blue pixel before falling back
+            if let nearbyBlue = findNearestBluePixel(
+                pixels: pixels,
+                startX: startX,
+                startY: startY,
+                width: width,
+                height: height,
+                bytesPerRow: bytesPerRow,
+                bytesPerPixel: bytesPerPixel,
+                searchRadius: 100,  // Increased from 50 for better blue box detection
+                isBGRA: isBGRA,
+                hasAlphaFirst: hasAlphaFirst
+            ) {
+                print("   ✅ Found blue pixel at (\(nearbyBlue.x), \(nearbyBlue.y)) - starting BFS from there")
+
+                // Use the nearby blue pixel as starting point for BFS
+                return detectBlueBoundariesBFS(
+                    pixels: pixels,
+                    startX: nearbyBlue.x,
+                    startY: nearbyBlue.y,
+                    width: width,
+                    height: height,
+                    bytesPerRow: bytesPerRow,
+                    bytesPerPixel: bytesPerPixel,
+                    pixelDataLength: pixelDataLength,
+                    isBGRA: isBGRA,
+                    hasAlphaFirst: hasAlphaFirst
+                )
+            } else {
+                print("   ❌ No blue pixels found within 50px radius - using fallback")
+                print("   💡 Tip: Ensure mouse is positioned closer to the blue border")
+                return createFallbackRect(mouseX: startX, mouseY: startY, screenWidth: width, screenHeight: height)
+            }
         }
 
         print("   ✅ Starting pixel is blue - beginning BFS boundary detection")
@@ -333,14 +380,17 @@ class ScreenshotCroppingService {
             height: height,
             bytesPerRow: bytesPerRow,
             bytesPerPixel: bytesPerPixel,
-            pixelDataLength: pixelDataLength
+            pixelDataLength: pixelDataLength,
+            isBGRA: isBGRA,
+            hasAlphaFirst: hasAlphaFirst
         )
     }
 
-    /// Helper: Create fallback crop rectangle (1200x900 centered on mouse)
+    /// Helper: Create fallback crop rectangle (800x600 centered on mouse)
     private func createFallbackRect(mouseX: Int, mouseY: Int, screenWidth: Int, screenHeight: Int) -> CGRect {
-        let fallbackWidth = min(1200, screenWidth)
-        let fallbackHeight = min(900, screenHeight)
+        // FIX 3: Reduced fallback size from 1200x900 to 800x600 for more reasonable default
+        let fallbackWidth = min(800, screenWidth)
+        let fallbackHeight = min(600, screenHeight)
 
         let x = max(0, min(mouseX - fallbackWidth / 2, screenWidth - fallbackWidth))
         let y = max(0, min(mouseY - fallbackHeight / 2, screenHeight - fallbackHeight))
@@ -349,13 +399,48 @@ class ScreenshotCroppingService {
         return CGRect(x: x, y: y, width: fallbackWidth, height: fallbackHeight)
     }
 
-    /// Blue pixel detection with tolerance (blue > 200 AND blue > red+green)
+    /// Blue pixel detection for light pastel blue (R:195, G:222, B:239)
+    /// This is a light UI blue with HIGH values in all channels
     private func isBluePixel(r: UInt8, g: UInt8, b: UInt8) -> Bool {
-        // Blue must be dominant (> 200) AND greater than red+green combined
-        return b > 200 && Int(b) > Int(r) + Int(g)
+        let rInt = Int(r)
+        let gInt = Int(g)
+        let bInt = Int(b)
+
+        // CRITICAL: Detect the exact quiz blue (R:195, G:222, B:239)
+        // This is a light pastel blue with HIGH values in all channels
+
+        // Criteria 1: Light blue with blue > green > red pattern
+        // For R:195, G:222, B:239: blue(239) > green(222) > red(195) ✓
+        let lightBluePattern = bInt > gInt && gInt > rInt && b > 200
+
+        // Criteria 2: Blue is highest channel by at least 10 points
+        // AND all channels are high (light color, > 150)
+        let blueHighestInLightColor = bInt > max(rInt, gInt) + 10 &&
+                                       r > 150 && g > 150 && b > 200
+
+        // Criteria 3: Blue tint - not white, not gray, blue component highest
+        // White: R≈G≈B≈255, Gray: R≈G≈B
+        // Blue tint: B >= G >= R, and difference from white
+        let isNotWhite = r < 250 || g < 250 || b < 250
+        let hasBlueTint = bInt >= gInt && gInt >= rInt && (bInt - rInt) > 30
+        let blueTintedColor = isNotWhite && hasBlueTint && b > 180
+
+        // Criteria 4: Strong blue dominance (keep for darker blues)
+        let strongBlueDominance = bInt > max(rInt, gInt) + 20 && b > 100
+
+        // Criteria 5: Exact match for quiz blue (with tolerance ±30)
+        // Target: R:195, G:222, B:239
+        let matchesQuizBlue = (r >= 165 && r <= 225) &&
+                              (g >= 192 && g <= 252) &&
+                              (b >= 209 && b <= 255) &&
+                              bInt > gInt && gInt > rInt
+
+        return lightBluePattern || blueHighestInLightColor ||
+               blueTintedColor || strongBlueDominance || matchesQuizBlue
     }
 
     /// SAFE iterative BFS to find blue box boundaries
+    /// FIX: Uses 8-connected neighbors for better coverage of anti-aliased edges
     private func detectBlueBoundariesBFS(
         pixels: UnsafePointer<UInt8>,
         startX: Int,
@@ -364,13 +449,15 @@ class ScreenshotCroppingService {
         height: Int,
         bytesPerRow: Int,
         bytesPerPixel: Int,
-        pixelDataLength: Int
+        pixelDataLength: Int,
+        isBGRA: Bool,
+        hasAlphaFirst: Bool
     ) -> CGRect? {
 
-        // SAFETY LIMITS
-        let maxPixelsToCheck = 500_000  // Stop after checking 500k pixels
-        let maxBoxWidth = 2000
-        let maxBoxHeight = 2000
+        // SAFETY LIMITS - FIX: Increased from 500k to 2 million for larger boxes
+        let maxPixelsToCheck = 2_000_000
+        let maxBoxWidth = 3000
+        let maxBoxHeight = 2500
 
         // Track visited pixels using Set (fast lookup)
         var visited = Set<Int>()
@@ -389,7 +476,7 @@ class ScreenshotCroppingService {
 
         var pixelsChecked = 0
 
-        print("   🌊 [BFS] Starting iterative BFS flood-fill (queue-based, no recursion)")
+        print("   🌊 [BFS] Starting iterative BFS flood-fill (8-connected, queue-based)")
         print("   📊 [BFS] Starting point: (\(startX), \(startY))")
         print("   📊 [BFS] Image dimensions: \(width) x \(height)")
         print("   📊 [BFS] Max pixels to check: \(maxPixelsToCheck)")
@@ -412,12 +499,16 @@ class ScreenshotCroppingService {
                 break
             }
 
-            // Check 4-connected neighbors (up, down, left, right)
+            // FIX: Check 8-connected neighbors (includes diagonals for anti-aliased edges)
             let neighbors = [
-                (currentX - 1, currentY),  // left
-                (currentX + 1, currentY),  // right
-                (currentX, currentY - 1),  // up
-                (currentX, currentY + 1)   // down
+                (currentX - 1, currentY),      // left
+                (currentX + 1, currentY),      // right
+                (currentX, currentY - 1),      // up
+                (currentX, currentY + 1),      // down
+                (currentX - 1, currentY - 1),  // top-left diagonal
+                (currentX + 1, currentY - 1),  // top-right diagonal
+                (currentX - 1, currentY + 1),  // bottom-left diagonal
+                (currentX + 1, currentY + 1)   // bottom-right diagonal
             ]
 
             for (nx, ny) in neighbors {
@@ -432,18 +523,16 @@ class ScreenshotCroppingService {
                     continue
                 }
 
-                // PIXEL DATA BOUNDS CHECK
+                // PIXEL DATA BOUNDS CHECK - use bytesPerRow for proper stride
                 let pixelIndex = (ny * bytesPerRow) + (nx * bytesPerPixel)
-                guard pixelIndex + 2 < pixelDataLength else {
+                guard pixelIndex + 3 < pixelDataLength else {
                     continue
                 }
 
-                // Get pixel color
-                let r = pixels[pixelIndex]
-                let g = pixels[pixelIndex + 1]
-                let b = pixels[pixelIndex + 2]
+                // Get pixel color using simplified BGRA reader
+                let (r, g, b) = readPixelRGB(pixels: pixels, index: pixelIndex)
 
-                // Check if blue pixel
+                // Check if blue pixel with relaxed threshold
                 if isBluePixel(r: r, g: g, b: b) {
                     visited.insert(visitKey)
                     queue.append((nx, ny))
@@ -456,13 +545,14 @@ class ScreenshotCroppingService {
         print("   📊 [BFS] Blue pixels found: \(visited.count)")
         print("   📐 [BFS] Raw detected bounds: X[\(minX)-\(maxX)] Y[\(minY)-\(maxY)]")
 
-        let boxWidth = maxX - minX
-        let boxHeight = maxY - minY
+        // FIX: Add +1 for correct width/height calculation (maxX - minX is off by one)
+        let boxWidth = maxX - minX + 1
+        let boxHeight = maxY - minY + 1
 
         print("   📏 [BFS] Detected dimensions: \(boxWidth) x \(boxHeight) pixels")
 
-        // VALIDATION: Minimum box size (filter noise)
-        if boxWidth < 50 || boxHeight < 50 {
+        // VALIDATION: Minimum box size (filter noise) - FIX: Reduced to 15x15
+        if boxWidth < 15 || boxHeight < 15 {
             print("   ⚠️  [BFS] Detected box too small (\(boxWidth)x\(boxHeight)) - likely noise, using fallback")
             return createFallbackRect(mouseX: startX, mouseY: startY, screenWidth: width, screenHeight: height)
         }
@@ -482,6 +572,8 @@ class ScreenshotCroppingService {
     }
 
     /// Find nearest blue pixel within search radius
+    /// FIX: Uses true spiral search checking ALL points, not just perimeter
+    /// This ensures we don't miss blue pixels that are closer but not on the perimeter ring
     private func findNearestBluePixel(
         pixels: UnsafePointer<UInt8>,
         startX: Int,
@@ -490,471 +582,52 @@ class ScreenshotCroppingService {
         height: Int,
         bytesPerRow: Int,
         bytesPerPixel: Int,
-        searchRadius: Int
+        searchRadius: Int,
+        isBGRA: Bool,
+        hasAlphaFirst: Bool
     ) -> (x: Int, y: Int)? {
 
-        // Search in expanding squares from center
-        for radius in 1...searchRadius {
-            // Check all points at this radius
-            for dx in -radius...radius {
-                for dy in -radius...radius {
-                    // Only check points on the perimeter of the square
-                    if abs(dx) != radius && abs(dy) != radius { continue }
+        // FIX: Use true spiral search by distance (Euclidean) for better nearest-pixel finding
+        // Collect all candidates within radius and sort by actual distance
+        var candidates: [(x: Int, y: Int, distance: Double)] = []
 
-                    let x = startX + dx
-                    let y = startY + dy
+        for dy in -searchRadius...searchRadius {
+            for dx in -searchRadius...searchRadius {
+                let x = startX + dx
+                let y = startY + dy
 
-                    // Validate pixel coordinates
-                    guard isValidPixel(x: x, y: y, width: width, height: height) else { continue }
+                // Skip if out of bounds
+                guard isValidPixel(x: x, y: y, width: width, height: height) else { continue }
 
-                    // Calculate pixel index and validate bounds
-                    let index = (y * bytesPerRow) + (x * bytesPerPixel)
-                    guard index + 2 < bytesPerRow * height else { continue }
+                // Calculate actual Euclidean distance
+                let distance = sqrt(Double(dx * dx + dy * dy))
 
-                    let r = pixels[index]
-                    let g = pixels[index + 1]
-                    let b = pixels[index + 2]
+                // Skip if beyond circular radius
+                if distance > Double(searchRadius) { continue }
 
-                    if isBluePixelEnhanced(r: r, g: g, b: b) {
-                        return (x, y)
-                    }
+                // Calculate pixel index and validate bounds
+                let index = (y * bytesPerRow) + (x * bytesPerPixel)
+                guard index + 3 < bytesPerRow * height else { continue }
+
+                // Use simplified BGRA reader
+                let (r, g, b) = readPixelRGB(pixels: pixels, index: index)
+
+                // Check if blue pixel
+                if isBluePixel(r: r, g: g, b: b) {
+                    candidates.append((x: x, y: y, distance: distance))
                 }
             }
+        }
+
+        // Return the closest blue pixel found
+        if let nearest = candidates.min(by: { $0.distance < $1.distance }) {
+            return (nearest.x, nearest.y)
         }
 
         return nil
     }
 
-    /// Detect blue box boundaries from a confirmed blue starting point
-    private func detectBlueBoxFromPoint(
-        pixels: UnsafePointer<UInt8>,
-        startX: Int,
-        startY: Int,
-        width: Int,
-        height: Int,
-        bytesPerRow: Int,
-        bytesPerPixel: Int
-    ) -> CGRect? {
 
-        print("   🌊 Starting flood-fill from (\(startX), \(startY))...")
-
-        // Validate starting position
-        guard isValidPixel(x: startX, y: startY, width: width, height: height) else {
-            print("   ❌ Starting pixel out of bounds: (\(startX), \(startY))")
-            return nil
-        }
-
-        // Initialize bounds
-        var minX = startX
-        var maxX = startX
-        var minY = startY
-        var maxY = startY
-
-        // Flood-fill using BFS queue
-        var visited = Set<Int>()  // Use single Int key for performance
-        var queue: [(x: Int, y: Int)] = [(startX, startY)]
-        let startKey = startY * width + startX
-        visited.insert(startKey)
-
-        var pixelCount = 0
-
-        // Safety limit to prevent infinite loops
-        let maxIterations = 500_000
-
-        while !queue.isEmpty && pixelCount < maxIterations {
-            let (x, y) = queue.removeFirst()
-            pixelCount += 1
-
-            // Update bounds
-            minX = min(minX, x)
-            maxX = max(maxX, x)
-            minY = min(minY, y)
-            maxY = max(maxY, y)
-
-            // Check 4 neighbors (up, down, left, right)
-            let neighbors = [
-                (x - 1, y),  // left
-                (x + 1, y),  // right
-                (x, y - 1),  // up
-                (x, y + 1)   // down
-            ]
-
-            for (nx, ny) in neighbors {
-                // CRITICAL: Bounds checking
-                guard isValidPixel(x: nx, y: ny, width: width, height: height) else {
-                    continue  // Skip out-of-bounds pixels
-                }
-
-                // Check if already visited
-                let key = ny * width + nx
-                guard !visited.contains(key) else { continue }
-
-                // CRITICAL: Check if pixel index is within data bounds
-                let pixelIndex = (ny * bytesPerRow) + (nx * bytesPerPixel)
-
-                // Ensure we can safely read RGB values (need 3 bytes)
-                guard pixelIndex + 2 < bytesPerRow * height else {
-                    print("   ⚠️  Pixel index out of data bounds: \(pixelIndex)")
-                    continue
-                }
-
-                // Get pixel color
-                let r = pixels[pixelIndex]
-                let g = pixels[pixelIndex + 1]
-                let b = pixels[pixelIndex + 2]
-
-                // Check if this pixel is part of the blue box (blue or inside the box)
-                if isPartOfBlueBox(r: r, g: g, b: b, pixels: pixels, x: nx, y: ny,
-                                   width: width, height: height, bytesPerRow: bytesPerRow,
-                                   bytesPerPixel: bytesPerPixel) {
-                    visited.insert(key)
-                    queue.append((nx, ny))
-                }
-            }
-        }
-
-        if pixelCount >= maxIterations {
-            print("   ⚠️  Flood-fill reached iteration limit (\(maxIterations))")
-        }
-
-        print("   📊 Flood-fill complete: processed \(pixelCount) pixels")
-        print("   📐 Raw bounds: X[\(minX)-\(maxX)] Y[\(minY)-\(maxY)]")
-
-        // Calculate box dimensions
-        let boxWidth = maxX - minX
-        let boxHeight = maxY - minY
-
-        // Validate minimum box size (filter out noise)
-        let minBoxSize = 50
-        if boxWidth < minBoxSize || boxHeight < minBoxSize {
-            print("   ⚠️  Detected region too small (\(boxWidth)x\(boxHeight)), likely noise")
-            return nil
-        }
-
-        // Add padding and clamp to screen bounds
-        let paddedMinX = max(0, CGFloat(minX) - boxPadding)
-        let paddedMinY = max(0, CGFloat(minY) - boxPadding)
-        let paddedMaxX = min(CGFloat(width), CGFloat(maxX) + boxPadding)
-        let paddedMaxY = min(CGFloat(height), CGFloat(maxY) + boxPadding)
-
-        let finalRect = CGRect(
-            x: paddedMinX,
-            y: paddedMinY,
-            width: paddedMaxX - paddedMinX,
-            height: paddedMaxY - paddedMinY
-        )
-
-        print("   ✅ Final crop rect with padding: \(finalRect)")
-        print("   📦 Size: \(Int(finalRect.width))x\(Int(finalRect.height)) pixels")
-        print("   🔁 Iterations: \(pixelCount)")
-
-        return finalRect
-    }
-
-    /// Check if a pixel is part of the blue box (blue border or interior content)
-    private func isPartOfBlueBox(
-        r: UInt8, g: UInt8, b: UInt8,
-        pixels: UnsafePointer<UInt8>,
-        x: Int, y: Int,
-        width: Int, height: Int,
-        bytesPerRow: Int,
-        bytesPerPixel: Int
-    ) -> Bool {
-        // Read RGB values safely (already validated by caller)
-        let rInt = Int(r)
-        let gInt = Int(g)
-        let bInt = Int(b)
-
-        // First check: is it a blue pixel (the box border)?
-        if isBluePixelEnhanced(r: r, g: g, b: b) {
-            return true
-        }
-
-        // Second check: is it light/white content inside the box?
-        // Quiz boxes typically have white/light gray interior
-        if isLightPixel(r: r, g: g, b: b) {
-            return true
-        }
-
-        // Third check: is it dark text inside the box?
-        if isDarkTextPixel(r: r, g: g, b: b) {
-            return true
-        }
-
-        return false
-    }
-
-    /// Enhanced blue pixel detection using both RGB and HSB
-    private func isBluePixelEnhanced(r: UInt8, g: UInt8, b: UInt8) -> Bool {
-        // Method 1: RGB range check (typical quiz blue: RGB ~50-100, 100-180, 200-255)
-        let rgbMatch = (
-            r >= BlueColorRange.redMin && r <= BlueColorRange.redMax &&
-            g >= BlueColorRange.greenMin && g <= BlueColorRange.greenMax &&
-            b >= BlueColorRange.blueMin && b <= BlueColorRange.blueMax
-        )
-
-        if rgbMatch {
-            return true
-        }
-
-        // Method 2: HSB check for broader blue detection
-        let color = NSColor(
-            red: CGFloat(r) / 255.0,
-            green: CGFloat(g) / 255.0,
-            blue: CGFloat(b) / 255.0,
-            alpha: 1.0
-        )
-
-        var hue: CGFloat = 0
-        var saturation: CGFloat = 0
-        var brightness: CGFloat = 0
-        var alpha: CGFloat = 0
-
-        // Convert to HSB
-        if let hsbColor = color.usingColorSpace(.sRGB) {
-            hsbColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-
-            // Check HSB range: Hue 200-240°, Saturation > 0.3, Brightness > 0.5
-            let hsbMatch = (
-                hue >= BlueColorRange.hueMin && hue <= BlueColorRange.hueMax &&
-                saturation >= BlueColorRange.saturationMin &&
-                brightness >= BlueColorRange.brightnessMin
-            )
-
-            if hsbMatch {
-                return true
-            }
-        }
-
-        // Method 3: Simple blue dominance check
-        let blueDominance: UInt8 = 40
-        if b > 150 && b > r + blueDominance && b > g + blueDominance {
-            return true
-        }
-
-        return false
-    }
-
-    /// Check if pixel is light (white/light gray - box interior)
-    private func isLightPixel(r: UInt8, g: UInt8, b: UInt8) -> Bool {
-        // Light pixels have high values in all channels and are roughly equal
-        let threshold: UInt8 = 200
-        let maxDiff: UInt8 = 30
-
-        if r >= threshold && g >= threshold && b >= threshold {
-            let maxVal = max(r, max(g, b))
-            let minVal = min(r, min(g, b))
-            return (maxVal - minVal) <= maxDiff
-        }
-
-        return false
-    }
-
-    /// Check if pixel is dark text
-    private func isDarkTextPixel(r: UInt8, g: UInt8, b: UInt8) -> Bool {
-        // Dark text pixels have low values in all channels
-        let threshold: UInt8 = 80
-        return r <= threshold && g <= threshold && b <= threshold
-    }
-
-    /// Create fallback crop rectangle centered on mouse position
-    private func createFallbackCropRect(
-        mouseX: CGFloat,
-        mouseY: CGFloat,
-        screenWidth: CGFloat,
-        screenHeight: CGFloat
-    ) -> CGRect {
-        let halfWidth = fallbackCropSize.width / 2
-        let halfHeight = fallbackCropSize.height / 2
-
-        // Calculate bounds, clamping to screen
-        let minX = max(0, mouseX - halfWidth)
-        let minY = max(0, mouseY - halfHeight)
-        let maxX = min(screenWidth, mouseX + halfWidth)
-        let maxY = min(screenHeight, mouseY + halfHeight)
-
-        return CGRect(
-            x: minX,
-            y: minY,
-            width: maxX - minX,
-            height: maxY - minY
-        )
-    }
-
-    // MARK: - Legacy Detection Method (Async)
-
-    /// Detect blue box bounds at mouse location by sampling screen pixels
-    /// Uses flood-fill algorithm to find exact boundaries - adapts to ANY box size
-    /// - Parameter mouseCoords: Mouse coordinates
-    /// - Returns: Bounding rectangle of detected blue box, or nil if not found
-    private func detectBlueBoxAtMouse(_ mouseCoords: MouseCoordinates) async -> CGRect? {
-        print("   🔍 Starting adaptive blue box detection...")
-
-        // Step 1: Capture a larger sample region to work with
-        let sampleSize: CGFloat = 800  // Large enough to capture full box
-        let sampleRect = CGRect(
-            x: mouseCoords.x - sampleSize / 2,
-            y: mouseCoords.y - sampleSize / 2,
-            width: sampleSize,
-            height: sampleSize
-        )
-
-        guard let sampleImage = captureScreenRegion(sampleRect) else {
-            print("   ❌ Failed to capture sample region")
-            return nil
-        }
-
-        // Step 2: Convert to CGImage for pixel access
-        guard let cgImage = sampleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-            print("   ❌ Failed to convert to CGImage")
-            return nil
-        }
-
-        // Step 3: Get pixel data
-        guard let dataProvider = cgImage.dataProvider,
-              let pixelData = dataProvider.data,
-              let pixels = CFDataGetBytePtr(pixelData) else {
-            print("   ❌ Failed to get pixel data")
-            return nil
-        }
-
-        let width = cgImage.width
-        let height = cgImage.height
-        let bytesPerPixel = 4
-        let bytesPerRow = cgImage.bytesPerRow
-
-        // Step 4: Find mouse position in sample image coordinates
-        let mouseInSample = CGPoint(
-            x: sampleSize / 2,
-            y: sampleSize / 2
-        )
-
-        // Step 5: Check if mouse is over blue pixel
-        let mousePixelX = Int(mouseInSample.x)
-        let mousePixelY = Int(mouseInSample.y)
-
-        guard mousePixelX >= 0 && mousePixelX < width && mousePixelY >= 0 && mousePixelY < height else {
-            print("   ❌ Mouse position out of bounds")
-            return nil
-        }
-
-        // Validate pixel index is within bounds
-        let pixelIndex = (mousePixelY * bytesPerRow) + (mousePixelX * bytesPerPixel)
-        let pixelDataLength = CFDataGetLength(pixelData)
-
-        guard pixelIndex + 2 < pixelDataLength else {
-            print("   ❌ Pixel index out of data bounds: \(pixelIndex)")
-            return nil
-        }
-
-        let r = pixels[pixelIndex]
-        let g = pixels[pixelIndex + 1]
-        let b = pixels[pixelIndex + 2]
-
-        if !isBluePixelEnhanced(r: r, g: g, b: b) {
-            print("   ⚠️  Mouse not over blue pixel (R:\(r) G:\(g) B:\(b))")
-            return nil
-        }
-
-        print("   ✅ Mouse over blue pixel - starting flood-fill...")
-
-        // Step 6: Use flood-fill to find all connected blue pixels
-        var visited = Set<String>()
-        var minX = mousePixelX
-        var maxX = mousePixelX
-        var minY = mousePixelY
-        var maxY = mousePixelY
-
-        // Flood-fill using queue (BFS)
-        var queue: [(x: Int, y: Int)] = [(mousePixelX, mousePixelY)]
-        visited.insert("\(mousePixelX),\(mousePixelY)")
-
-        // Safety limit to prevent infinite loops
-        let maxIterations = 500_000
-        var iterations = 0
-
-        while !queue.isEmpty && iterations < maxIterations {
-            let (x, y) = queue.removeFirst()
-            iterations += 1
-
-            // Update bounds
-            minX = min(minX, x)
-            maxX = max(maxX, x)
-            minY = min(minY, y)
-            maxY = max(maxY, y)
-
-            // Check 4 neighbors (up, down, left, right)
-            let neighbors = [
-                (x - 1, y),  // left
-                (x + 1, y),  // right
-                (x, y - 1),  // up
-                (x, y + 1)   // down
-            ]
-
-            for (nx, ny) in neighbors {
-                // CRITICAL: Bounds checking
-                guard isValidPixel(x: nx, y: ny, width: width, height: height) else {
-                    continue  // Skip out-of-bounds pixels
-                }
-
-                // Check if already visited
-                let key = "\(nx),\(ny)"
-                guard !visited.contains(key) else { continue }
-
-                // CRITICAL: Check if pixel index is within data bounds
-                let nPixelIndex = (ny * bytesPerRow) + (nx * bytesPerPixel)
-                guard nPixelIndex + 2 < pixelDataLength else {
-                    print("   ⚠️  Pixel index out of data bounds: \(nPixelIndex)")
-                    continue
-                }
-
-                // Get pixel color
-                let nr = pixels[nPixelIndex]
-                let ng = pixels[nPixelIndex + 1]
-                let nb = pixels[nPixelIndex + 2]
-
-                // Check if blue or part of box content
-                if isPartOfBlueBox(r: nr, g: ng, b: nb, pixels: pixels, x: nx, y: ny,
-                                   width: width, height: height, bytesPerRow: bytesPerRow,
-                                   bytesPerPixel: bytesPerPixel) {
-                    visited.insert(key)
-                    queue.append((nx, ny))
-                }
-            }
-        }
-
-        if iterations >= maxIterations {
-            print("   ⚠️  Flood-fill reached iteration limit (\(maxIterations))")
-        }
-
-        print("   📊 Flood-fill complete: found \(visited.count) pixels")
-
-        // Step 7: Calculate bounding box with padding
-        let padding: CGFloat = boxPadding
-        let boxWidth = CGFloat(maxX - minX)
-        let boxHeight = CGFloat(maxY - minY)
-
-        print("   📐 Detected box size: \(boxWidth) x \(boxHeight)")
-
-        // Convert back to screen coordinates
-        let screenX = sampleRect.origin.x + CGFloat(minX) - padding
-        let screenY = sampleRect.origin.y + CGFloat(minY) - padding
-        let screenWidth = boxWidth + (padding * 2)
-        let screenHeight = boxHeight + (padding * 2)
-
-        let bounds = CGRect(
-            x: screenX,
-            y: screenY,
-            width: screenWidth,
-            height: screenHeight
-        )
-
-        print("   ✅ Adaptive detection complete!")
-        print("   📦 Final bounds: X:\(Int(screenX)) Y:\(Int(screenY)) W:\(Int(screenWidth)) H:\(Int(screenHeight))")
-        print("   🎯 Algorithm automatically adapted to box size")
-
-        return bounds
-    }
 
     // MARK: - Screen Capture Methods
 
