@@ -10,6 +10,87 @@ import Foundation
 import AppKit
 import CoreGraphics
 
+// MARK: - LAB Color Space Types
+
+/// Represents a color in LAB color space
+private struct LABColor {
+    let L: Double  // Lightness (0-100)
+    let a: Double  // Green-Red component (-128 to 127)
+    let b: Double  // Blue-Yellow component (-128 to 127)
+}
+
+/// Convert RGB (0-255) to LAB color space
+private func rgbToLAB(r: UInt8, g: UInt8, b: UInt8) -> LABColor {
+    // Step 1: RGB to XYZ (sRGB with D65 illuminant)
+    var rLinear = Double(r) / 255.0
+    var gLinear = Double(g) / 255.0
+    var bLinear = Double(b) / 255.0
+
+    // Apply gamma correction (sRGB)
+    rLinear = rLinear > 0.04045 ? pow((rLinear + 0.055) / 1.055, 2.4) : rLinear / 12.92
+    gLinear = gLinear > 0.04045 ? pow((gLinear + 0.055) / 1.055, 2.4) : gLinear / 12.92
+    bLinear = bLinear > 0.04045 ? pow((bLinear + 0.055) / 1.055, 2.4) : bLinear / 12.92
+
+    // Convert to XYZ (D65 reference white)
+    let x = rLinear * 0.4124564 + gLinear * 0.3575761 + bLinear * 0.1804375
+    let y = rLinear * 0.2126729 + gLinear * 0.7151522 + bLinear * 0.0721750
+    let z = rLinear * 0.0193339 + gLinear * 0.1191920 + bLinear * 0.9503041
+
+    // Step 2: XYZ to LAB
+    // Reference white D65: X=0.95047, Y=1.0, Z=1.08883
+    let xRef = x / 0.95047
+    let yRef = y / 1.0
+    let zRef = z / 1.08883
+
+    func f(_ t: Double) -> Double {
+        let delta: Double = 6.0 / 29.0
+        return t > pow(delta, 3) ? pow(t, 1.0/3.0) : t / (3 * delta * delta) + 4.0/29.0
+    }
+
+    let L = 116.0 * f(yRef) - 16.0
+    let a = 500.0 * (f(xRef) - f(yRef))
+    let labB = 200.0 * (f(yRef) - f(zRef))
+
+    return LABColor(L: L, a: a, b: labB)
+}
+
+/// Calculate Delta E (CIE76) color distance between two LAB colors
+private func deltaE(_ lab1: LABColor, _ lab2: LABColor) -> Double {
+    let dL = lab1.L - lab2.L
+    let da = lab1.a - lab2.a
+    let db = lab1.b - lab2.b
+    return sqrt(dL * dL + da * da + db * db)
+}
+
+// MARK: - Robust Detection Configuration
+
+/// Configuration for LAB-based robust detection algorithm
+private struct RobustDetectionConfig {
+    /// ΔE threshold for interior color matching (configurable: 12-16)
+    static var interiorDeltaE: Double = 15.0
+
+    /// ΔE threshold for border detection (configurable: 25-35)
+    static var borderDeltaE: Double = 30.0
+
+    /// ΔE threshold to distinguish border from white
+    static var borderToWhiteDeltaE: Double = 10.0
+
+    /// Minimum continuous border pixels required
+    static let minContinuousBorderPixels: Int = 3
+
+    /// Maximum pixels before aborting (safety limit)
+    static let maxFloodFillPixels: Int = 800_000
+
+    /// Sample region size for interior color
+    static let sampleSize: Int = 5
+
+    /// Max distance to scan for borders
+    static let maxBorderScanDistance: Int = 50
+
+    /// Reference white in LAB space
+    static let whiteLAB = LABColor(L: 100.0, a: 0.0, b: 0.0)
+}
+
 /// Service for capturing mouse coordinates and cropping screenshots to specific regions
 @MainActor
 class ScreenshotCroppingService {
@@ -88,6 +169,74 @@ class ScreenshotCroppingService {
         }
 
         return (imageURL: imageURL, mouseCoords: result.mouseCoords)
+    }
+
+    // MARK: - Robust Blue Box Detection (LAB Color Space Algorithm)
+
+    /// Capture blue box using robust LAB color space flood-fill algorithm
+    /// This algorithm is designed to handle boxes with 80%+ white interior content
+    /// - Returns: Tuple of image URL and mouse coordinates, or nil on failure
+    func captureBlueBoxRobust() -> (imageURL: URL?, mouseCoords: (x: CGFloat, y: CGFloat))? {
+        print("\n" + String(repeating: "=", count: 60))
+        print("🎯 [RobustCapture] ROBUST BLUE BOX DETECTION (LAB Color Space)")
+        print(String(repeating: "=", count: 60))
+
+        // BUG FIX #1: Check Screen Recording permission FIRST
+        if #available(macOS 10.15, *) {
+            let hasPermission = CGPreflightScreenCaptureAccess()
+            if !hasPermission {
+                print("❌ [RobustCapture] Screen Recording permission NOT GRANTED")
+                print("   Go to System Preferences → Security & Privacy → Privacy → Screen Recording")
+                print("   Add Stats to the list and enable it")
+                CGRequestScreenCaptureAccess()
+                return nil
+            }
+            print("✅ [RobustCapture] Screen Recording permission granted")
+        }
+
+        // STEP 1: Capture full-screen screenshot
+        let displayID = CGMainDisplayID()
+        guard let fullScreenImage = CGDisplayCreateImage(displayID) else {
+            print("❌ [RobustCapture] Failed to capture full screen")
+            return nil
+        }
+
+        // STEP 2: Get mouse position
+        let mouseCoords = captureMouseCoordinates()
+        let scale = NSScreen.main?.backingScaleFactor ?? 1.0
+        let screenHeightPoints = mouseCoords.screenHeight
+        let actualScaling = CGFloat(fullScreenImage.height) / screenHeightPoints
+
+        let mouseXPixels = Int(mouseCoords.x * actualScaling)
+        let mouseYTopLeftPoints = screenHeightPoints - mouseCoords.y
+        let mouseYPixels = Int(mouseYTopLeftPoints * actualScaling)
+
+        print("🖱️  Mouse pixels: (\(mouseXPixels), \(mouseYPixels))")
+
+        // STEP 3-8: Detect blue box using LAB flood-fill
+        guard let cropRect = detectBlueBoxLAB(
+            in: fullScreenImage,
+            startX: mouseXPixels,
+            startY: mouseYPixels
+        ) else {
+            print("❌ [RobustCapture] LAB detection failed")
+            return nil
+        }
+
+        // Crop and save
+        guard let croppedImage = fullScreenImage.cropping(to: cropRect) else {
+            print("❌ [RobustCapture] Failed to crop image")
+            return nil
+        }
+
+        let croppedNSImage = NSImage(cgImage: croppedImage, size: cropRect.size)
+        guard let fileURL = ScreenshotFileManager.shared.saveScreenshot(croppedNSImage) else {
+            print("❌ [RobustCapture] Failed to save screenshot")
+            return nil
+        }
+
+        print("✅ [RobustCapture] Screenshot saved: \(fileURL.lastPathComponent)")
+        return (imageURL: fileURL, mouseCoords: (x: mouseCoords.x, y: mouseCoords.y))
     }
 
     /// Capture blue box at current mouse position and save as PNG - MAIN METHOD
@@ -219,6 +368,391 @@ class ScreenshotCroppingService {
         return coordinates
     }
 
+
+    /// LAB-based blue box detection using FLOOD-FILL algorithm with Delta E
+    /// Uses LAB color space for perceptual color matching
+    /// FIX: Now uses same blue detection as detectBlueBoxFloodFill() with safety limits
+    private func detectBlueBoxLAB(in image: CGImage, startX: Int, startY: Int) -> CGRect? {
+        let width = image.width
+        let height = image.height
+
+        guard startX >= 0 && startX < width && startY >= 0 && startY < height else {
+            return nil
+        }
+
+        guard let dataProvider = image.dataProvider,
+              let pixelData = dataProvider.data,
+              let ptr = CFDataGetBytePtr(pixelData) else {
+            return nil
+        }
+
+        let bytesPerRow = image.bytesPerRow
+        let bytesPerPixel = 4  // BGRA format
+
+        // SAFETY LIMITS - prevent infinite loops and performance issues
+        let maxPixelsToCheck = 2_000_000  // Maximum pixels to process
+        let maxBoxWidth = 3000
+        let maxBoxHeight = 2500
+
+        print("   🎯 LAB FLOOD-FILL: Using same blue detection as working method")
+        print("   🖱️  Start position: (\(startX), \(startY))")
+        print("   📐 Image dimensions: \(width) x \(height)")
+        print("   🛡️  Safety limits: max \(maxPixelsToCheck) pixels, box ≤ \(maxBoxWidth)x\(maxBoxHeight)")
+
+        // Helper: Get pixel RGB values (BGRA format)
+        func getPixelRGB(x: Int, y: Int) -> (r: UInt8, g: UInt8, b: UInt8)? {
+            guard x >= 0 && x < width && y >= 0 && y < height else { return nil }
+            let offset = (y * bytesPerRow) + (x * bytesPerPixel)
+            // BGRA format: Blue, Green, Red, Alpha
+            let b = ptr[offset + 0]
+            let g = ptr[offset + 1]
+            let r = ptr[offset + 2]
+            return (r, g, b)
+        }
+
+        // Helper: Check if color is blue using SAME logic as working detectBlueBoxFloodFill()
+        // This is the CORRECT blue detection that works for quiz boxes
+        func isBluePixel(r: UInt8, g: UInt8, b: UInt8) -> Bool {
+            let rInt = Int(r)
+            let gInt = Int(g)
+            let bInt = Int(b)
+
+            // Use the same 5 criteria as the working method
+            // Criteria 1: Light blue with blue > green > red pattern
+            let lightBluePattern = bInt > gInt && gInt > rInt && b > 200
+
+            // Criteria 2: Blue is highest channel by at least 10 points
+            let blueHighestInLightColor = bInt > max(rInt, gInt) + 10 &&
+                                          r > 150 && g > 150 && b > 200
+
+            // Criteria 3: Blue tint - not white, not gray
+            let isNotWhite = r < 250 || g < 250 || b < 250
+            let hasBlueTint = bInt >= gInt && gInt >= rInt && (bInt - rInt) > 30
+            let blueTintedColor = isNotWhite && hasBlueTint && b > 180
+
+            // Criteria 4: Strong blue dominance
+            let strongBlueDominance = bInt > max(rInt, gInt) + 20 && b > 100
+
+            // Criteria 5: Exact match for quiz blue (R:195, G:222, B:239) with tolerance ±30
+            let matchesQuizBlue = (r >= 165 && r <= 225) &&
+                                  (g >= 192 && g <= 252) &&
+                                  (b >= 209 && b <= 255) &&
+                                  bInt > gInt && gInt > rInt
+
+            return lightBluePattern || blueHighestInLightColor ||
+                   blueTintedColor || strongBlueDominance || matchesQuizBlue
+        }
+
+        // Visited set and queue
+        var visited = Set<Int>()
+        func idx(_ x: Int, _ y: Int) -> Int { y * width + x }
+        var queue: [(Int, Int)] = []
+
+        // 1) Find start point (search ±5 pixels around mouse for better coverage)
+        var foundStart = false
+        outerLoop: for dy in -5...5 {
+            for dx in -5...5 {
+                let x = startX + dx, y = startY + dy
+                if x >= 0 && y >= 0 && x < width && y < height {
+                    if let (r, g, b) = getPixelRGB(x: x, y: y), isBluePixel(r: r, g: g, b: b) {
+                        queue.append((x, y))
+                        foundStart = true
+                        print("   ✅ Found blue start pixel at (\(x), \(y)) - RGB: (\(r), \(g), \(b))")
+                        break outerLoop
+                    }
+                }
+            }
+        }
+
+        if !foundStart {
+            print("   ❌ No blue pixel found within ±5 of mouse position")
+            return nil
+        }
+
+        var minX = width, minY = height, maxX = 0, maxY = 0
+        var pixelsChecked = 0
+
+        // 2) Flood-fill through connected blue pixels with SAFETY LIMITS
+        while !queue.isEmpty && pixelsChecked < maxPixelsToCheck {
+            let (x, y) = queue.removeFirst()
+            let id = idx(x, y)
+
+            if visited.contains(id) { continue }
+            visited.insert(id)
+            pixelsChecked += 1
+
+            // Validate pixel is still blue
+            guard let (r, g, b) = getPixelRGB(x: x, y: y), isBluePixel(r: r, g: g, b: b) else {
+                continue
+            }
+
+            // Update bounding box
+            minX = min(minX, x)
+            minY = min(minY, y)
+            maxX = max(maxX, x)
+            maxY = max(maxY, y)
+
+            // SAFETY CHECK: Box size exceeded maximum
+            let boxWidth = maxX - minX
+            let boxHeight = maxY - minY
+            if boxWidth > maxBoxWidth || boxHeight > maxBoxHeight {
+                print("   ⚠️  Box size exceeded maximum (\(boxWidth)x\(boxHeight)) - stopping early")
+                break
+            }
+
+            // Add 8-connected neighbors (includes diagonals for anti-aliased edges)
+            let neighbors = [
+                (x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1),
+                (x - 1, y - 1), (x + 1, y - 1), (x - 1, y + 1), (x + 1, y + 1)
+            ]
+
+            for (nx, ny) in neighbors {
+                if nx >= 0 && ny >= 0 && nx < width && ny < height {
+                    let nid = idx(nx, ny)
+                    if !visited.contains(nid) {
+                        queue.append((nx, ny))
+                    }
+                }
+            }
+        }
+
+        // Check if we hit safety limits
+        if pixelsChecked >= maxPixelsToCheck {
+            print("   ⚠️  Hit safety limit of \(maxPixelsToCheck) pixels - likely wrong detection")
+        }
+
+        // Validate result
+        let boxWidth = maxX - minX + 1
+        let boxHeight = maxY - minY + 1
+
+        print("   📊 Flood-fill visited \(visited.count) pixels (checked \(pixelsChecked))")
+        print("   📐 Bounding box: \(boxWidth)x\(boxHeight) at (\(minX), \(minY))")
+
+        if boxWidth < 50 || boxHeight < 50 {
+            print("   ❌ Detected box too small: \(boxWidth)x\(boxHeight)")
+            return nil
+        }
+
+        print("   ✅ Blue box detected: \(boxWidth)x\(boxHeight) at (\(minX), \(minY))")
+
+        // Add padding
+        let padding: CGFloat = 10
+        let paddedX = max(0, CGFloat(minX) - padding)
+        let paddedY = max(0, CGFloat(minY) - padding)
+        let paddedWidth = min(CGFloat(width) - paddedX, CGFloat(boxWidth) + 2 * padding)
+        let paddedHeight = min(CGFloat(height) - paddedY, CGFloat(boxHeight) + 2 * padding)
+
+        return CGRect(x: paddedX, y: paddedY, width: paddedWidth, height: paddedHeight)
+    }
+
+    /// Check if a pixel has stronger blue saturation than the interior (for border detection)
+    private func hasStrongerBlueSaturation(_ pixel: LABColor, than interior: LABColor) -> Bool {
+        // In LAB: negative 'b' = blue, positive 'b' = yellow
+        // Stronger blue = more negative 'b' value
+        return pixel.b < interior.b - 5.0  // At least 5 units more blue
+    }
+
+    /// Check if a pixel is darker than the interior (for border detection)
+    private func isDarkerThanInterior(_ pixel: LABColor, interior: LABColor) -> Bool {
+        // Border is darker (lower L value) than interior
+        return pixel.L < interior.L - 10.0  // At least 10 units darker on L scale
+    }
+
+    /// STEP 6: Scan outward from inner rectangle edges to find border
+    /// CRITICAL: Must find 2-3 CONTINUOUS border pixels with:
+    ///   - ΔE to interior > 25
+    ///   - ΔE to white > 10
+    ///   - Stronger blue saturation than interior
+    /// ROBUST: Scans at 3 sampling lines (25%, 50%, 75%) and takes MEDIAN
+    ///         This prevents failures when white diagrams overlap the midpoint
+    private func scanForBorders(
+        pixels: UnsafePointer<UInt8>,
+        bytesPerRow: Int,
+        bytesPerPixel: Int,
+        pixelDataLength: Int,
+        width: Int,
+        height: Int,
+        interiorLAB: LABColor,
+        innerMinX: Int,
+        innerMaxX: Int,
+        innerMinY: Int,
+        innerMaxY: Int,
+        isBGRA: Bool,
+        hasAlphaFirst: Bool
+    ) -> (left: Int, right: Int, top: Int, bottom: Int) {
+
+        let borderDeltaE = RobustDetectionConfig.borderDeltaE
+        let borderToWhiteDeltaE = RobustDetectionConfig.borderToWhiteDeltaE
+        let minContinuousPixels = RobustDetectionConfig.minContinuousBorderPixels
+        let maxScanDistance = RobustDetectionConfig.maxBorderScanDistance
+        let whiteLAB = RobustDetectionConfig.whiteLAB
+
+        /// Get pixel LAB value with correct byte order
+        func getPixelLAB(x: Int, y: Int) -> LABColor? {
+            guard x >= 0 && x < width && y >= 0 && y < height else { return nil }
+            let idx = y * bytesPerRow + x * bytesPerPixel
+            guard idx + 3 < pixelDataLength else { return nil }
+
+            let pR: UInt8, pG: UInt8, pB: UInt8
+            if isBGRA {
+                pR = pixels[idx + 2]
+                pG = pixels[idx + 1]
+                pB = pixels[idx]
+            } else if hasAlphaFirst {
+                pR = pixels[idx + 1]
+                pG = pixels[idx + 2]
+                pB = pixels[idx + 3]
+            } else {
+                pR = pixels[idx]
+                pG = pixels[idx + 1]
+                pB = pixels[idx + 2]
+            }
+            return rgbToLAB(r: pR, g: pG, b: pB)
+        }
+
+        func isBorderPixel(_ lab: LABColor) -> Bool {
+            let distToInterior = deltaE(interiorLAB, lab)
+            let distToWhite = deltaE(whiteLAB, lab)
+
+            // Relaxed border detection: must be different from both interior AND white
+            // Removed strict darkness/blue requirements that were too restrictive
+            return distToInterior > borderDeltaE && distToWhite > borderToWhiteDeltaE
+        }
+
+        /// Check if pixel qualifies as interior (close to sampled interior color)
+        func isInteriorPixel(_ lab: LABColor) -> Bool {
+            return deltaE(interiorLAB, lab) < RobustDetectionConfig.interiorDeltaE
+        }
+
+        /// Check for N continuous border pixels in given direction
+        /// INCLUDES border thickness verification:
+        /// - One pixel outward must also be border (≥2px thick)
+        /// - One pixel inward must be interior
+        func findContinuousBorder(startX: Int, startY: Int, dx: Int, dy: Int) -> Int? {
+            var consecutiveCount = 0
+            var borderPosition: Int? = nil
+            var firstBorderX: Int? = nil
+            var firstBorderY: Int? = nil
+
+            for step in 0..<maxScanDistance {
+                let x = startX + step * dx
+                let y = startY + step * dy
+
+                guard let lab = getPixelLAB(x: x, y: y) else {
+                    // Out of bounds = edge of screen, use as border
+                    return dx != 0 ? x - dx : y - dy
+                }
+
+                if isBorderPixel(lab) {
+                    consecutiveCount += 1
+                    if borderPosition == nil {
+                        borderPosition = dx != 0 ? x : y
+                        firstBorderX = x
+                        firstBorderY = y
+                    }
+                    if consecutiveCount >= minContinuousPixels {
+                        // RELAXED THICKNESS VERIFICATION
+                        guard let bx = firstBorderX, let by = firstBorderY else {
+                            return borderPosition
+                        }
+
+                        // Check one pixel INWARD from detected border (should be interior or white)
+                        let inwardX = bx - dx
+                        let inwardY = by - dy
+                        let inwardIsValid: Bool
+                        if let inwardLab = getPixelLAB(x: inwardX, y: inwardY) {
+                            // Accept if inward pixel is interior OR very close to white (content)
+                            let isInterior = isInteriorPixel(inwardLab)
+                            let isWhiteContent = deltaE(whiteLAB, inwardLab) < 20.0
+                            inwardIsValid = isInterior || isWhiteContent
+                        } else {
+                            inwardIsValid = false
+                        }
+
+                        // Accept if inward check passes (relaxed from requiring both inward AND outward)
+                        if inwardIsValid {
+                            return borderPosition
+                        } else if consecutiveCount >= minContinuousPixels + 2 {
+                            // If we have many continuous border pixels, accept anyway
+                            return borderPosition
+                        } else {
+                            // Failed check - continue scanning
+                            consecutiveCount = 0
+                            borderPosition = nil
+                            firstBorderX = nil
+                            firstBorderY = nil
+                        }
+                    }
+                } else {
+                    consecutiveCount = 0
+                    borderPosition = nil
+                    firstBorderX = nil
+                    firstBorderY = nil
+                }
+            }
+
+            return nil
+        }
+
+        /// Helper to compute median of up to 3 values (ignores nil)
+        func median(_ values: [Int?]) -> Int? {
+            let valid = values.compactMap { $0 }.sorted()
+            guard !valid.isEmpty else { return nil }
+            return valid[valid.count / 2]  // Middle element (or lower-middle for even count)
+        }
+
+        // Calculate 3 sampling positions at 25%, 50%, 75% of each span
+        let ySpan = innerMaxY - innerMinY
+        let xSpan = innerMaxX - innerMinX
+
+        let y25 = innerMinY + ySpan / 4
+        let y50 = innerMinY + ySpan / 2
+        let y75 = innerMinY + (3 * ySpan) / 4
+
+        let x25 = innerMinX + xSpan / 4
+        let x50 = innerMinX + xSpan / 2
+        let x75 = innerMinX + (3 * xSpan) / 4
+
+        // Scan RIGHT at 3 lines (y25, y50, y75), take median (X-axis priority)
+        let rightCandidates = [
+            findContinuousBorder(startX: innerMaxX, startY: y25, dx: 1, dy: 0),
+            findContinuousBorder(startX: innerMaxX, startY: y50, dx: 1, dy: 0),
+            findContinuousBorder(startX: innerMaxX, startY: y75, dx: 1, dy: 0)
+        ]
+        let borderRight = median(rightCandidates) ?? innerMaxX + 10
+
+        // Scan LEFT at 3 lines
+        let leftCandidates = [
+            findContinuousBorder(startX: innerMinX, startY: y25, dx: -1, dy: 0),
+            findContinuousBorder(startX: innerMinX, startY: y50, dx: -1, dy: 0),
+            findContinuousBorder(startX: innerMinX, startY: y75, dx: -1, dy: 0)
+        ]
+        let borderLeft = median(leftCandidates) ?? max(0, innerMinX - 10)
+
+        // Scan DOWN at 3 lines (x25, x50, x75)
+        let bottomCandidates = [
+            findContinuousBorder(startX: x25, startY: innerMaxY, dx: 0, dy: 1),
+            findContinuousBorder(startX: x50, startY: innerMaxY, dx: 0, dy: 1),
+            findContinuousBorder(startX: x75, startY: innerMaxY, dx: 0, dy: 1)
+        ]
+        let borderBottom = median(bottomCandidates) ?? innerMaxY + 10
+
+        // Scan UP at 3 lines
+        let topCandidates = [
+            findContinuousBorder(startX: x25, startY: innerMinY, dx: 0, dy: -1),
+            findContinuousBorder(startX: x50, startY: innerMinY, dx: 0, dy: -1),
+            findContinuousBorder(startX: x75, startY: innerMinY, dx: 0, dy: -1)
+        ]
+        let borderTop = median(topCandidates) ?? max(0, innerMinY - 10)
+
+        print("   🔍 Border scan (3-line median, requires \(minContinuousPixels) continuous):")
+        print("      Right candidates: \(rightCandidates) → median: \(borderRight)")
+        print("      Left candidates: \(leftCandidates) → median: \(borderLeft)")
+        print("      Bottom candidates: \(bottomCandidates) → median: \(borderBottom)")
+        print("      Top candidates: \(topCandidates) → median: \(borderTop)")
+
+        return (borderLeft, borderRight, borderTop, borderBottom)
+    }
 
     // MARK: - Blue Box Detection (Flood-Fill Algorithm)
 

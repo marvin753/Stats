@@ -6,6 +6,7 @@
  * Supported Shortcuts:
  * - Cmd+Option+O: Capture screenshot (observed but not consumed)
  * - Cmd+Option+P: Process all screenshots (observed but not consumed)
+ * - Cmd+I: Robust blue box capture (observed but not consumed)
  *
  * IMPORTANT: Uses .listenOnly mode exclusively to avoid triggering macOS security violations.
  * Events are observed and passed through without modification to prevent app termination.
@@ -16,7 +17,8 @@ import Carbon.HIToolbox
 
 protocol KeyboardShortcutDelegate: AnyObject {
     func onCaptureScreenshot()  // Called when Cmd+Option+O is pressed
-    func onProcessScreenshots() // Called when Cmd+Control+P is pressed (kept for future use)
+    func onProcessScreenshots() // Called when Cmd+Option+P is pressed (kept for future use)
+    func onRobustCapture()      // Called when Cmd+Option+I is pressed
 }
 
 class KeyboardShortcutManager: NSObject {
@@ -42,7 +44,7 @@ class KeyboardShortcutManager: NSObject {
 
     override init() {
         super.init()
-        print("[KeyboardManager] Initialized for keyboard shortcuts: Cmd+Option+O (capture), Cmd+Option+P (process)")
+        print("[KeyboardManager] Initialized for keyboard shortcuts: Cmd+Option+O (capture), Cmd+Option+P (process), Cmd+Option+I (robust capture)")
     }
 
     // MARK: - Public Methods
@@ -73,6 +75,7 @@ class KeyboardShortcutManager: NSObject {
      * Monitors for:
      * - Cmd+Option+O: Capture screenshot
      * - Cmd+Option+P: Process all screenshots
+     * - Cmd+Option+I: Robust blue box capture
      */
     @discardableResult
     func registerGlobalShortcut() -> Bool {
@@ -138,7 +141,7 @@ class KeyboardShortcutManager: NSObject {
             print("\n" + String(repeating: "=", count: 60))
             print("✅ [KeyboardManager] Global keyboard shortcuts registered")
             print("   Configuration: \(config.name)")
-            print("   Monitoring: Cmd+Option+O, Cmd+Option+P")
+            print("   Monitoring: Cmd+Option+O, Cmd+Option+P, Cmd+Option+I")
             print("   Event consumption: \(config.options == .defaultTap ? "ENABLED" : "DISABLED")")
             print(String(repeating: "=", count: 60))
 
@@ -180,6 +183,18 @@ class KeyboardShortcutManager: NSObject {
             let hasCommand = flags.contains(.maskCommand)
             let hasOption = flags.contains(.maskAlternate)
 
+            // Cmd+I (WITHOUT Option) - Robust blue box capture
+            // Check this FIRST before the Cmd+Option guard
+            if hasCommand && !hasOption && keyCode == Int64(kVK_ANSI_I) {
+                print("[KeyboardManager] Cmd+I detected: Robust blue box capture")
+                DispatchQueue.main.async {
+                    manager.delegate?.onRobustCapture()
+                }
+                print("[KeyboardManager] Event observed (listenOnly mode - not consumed)")
+                return Unmanaged.passUnretained(event)
+            }
+
+            // For Cmd+Option+O and Cmd+Option+P
             guard hasCommand && hasOption else {
                 return Unmanaged.passUnretained(event)
             }

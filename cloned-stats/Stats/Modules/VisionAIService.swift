@@ -193,18 +193,25 @@ class VisionAIService {
         Which question can be seen here?
         The image has coordinates x:0 y:0 at the bottom left corner.
 
-        Extract the question and all answer options in the EXACT same order as they appear in the screenshot (from top to bottom).
+        Extract the COMPLETE question text and ALL answer options.
+
+        CRITICAL ORDERING REQUIREMENT:
+        - Extract answer options in EXACT visual TOP-TO-BOTTOM order as they appear on screen
+        - The FIRST answer shown visually (topmost) MUST be answers[0]
+        - The SECOND answer shown visually MUST be answers[1]
+        - And so on...
+        - Do NOT reorder, alphabetize, sort, or modify the sequence in any way
+        - Preserve the exact display order from the webpage
 
         Return ONLY valid JSON in this exact format:
         {
-          "question": "The complete question text exactly as shown",
-          "answers": ["First answer option", "Second answer option", "Third answer option", "Fourth answer option"]
+          "question": "The COMPLETE question text exactly as shown - include ALL words",
+          "answers": ["First/top answer option", "Second answer option", "Third answer option", "Fourth/bottom answer option"]
         }
 
         Important:
-        - Include the full question text
-        - List ALL answer options in the order they appear (usually A, B, C, D or 1, 2, 3, 4)
-        - Do not reorder the answers
+        - Include the FULL question text without truncation
+        - Preserve the EXACT visual top-to-bottom order of answers
         - Do not add explanations, just return the JSON
         """
 
@@ -230,7 +237,7 @@ class VisionAIService {
                     ]
                 ]
             ],
-            "max_tokens": 500,
+            "max_tokens": 2000,  // Increased to handle long questions
             "temperature": 0.1 // Low temperature for consistent extraction
         ]
 
@@ -312,6 +319,110 @@ class VisionAIService {
         print("Extracted question: \"\(question.prefix(60))...\" (\(answers.count) answers)")
 
         return (question: question, answers: answers)
+    }
+
+    // MARK: - Correct Answer Analysis
+
+    /// Get the correct answer number using OpenAI
+    /// - Parameters:
+    ///   - question: The question text
+    ///   - answers: Array of answer options
+    ///   - retryOnFailure: Whether to retry once on failure (default: true)
+    /// - Returns: Answer number (1, 2, 3, etc.) or nil if undetermined
+    func getCorrectAnswer(
+        for question: String,
+        with answers: [String],
+        retryOnFailure: Bool = true
+    ) async throws -> Int? {
+        guard isOpenAIConfigured() else {
+            print("   ❌ OpenAI API key not configured")
+            return nil
+        }
+
+        // Build the prompt - outputs ONLY a single number
+        let answersFormatted = answers.enumerated()
+            .map { "\($0.offset + 1). \($0.element)" }
+            .joined(separator: "\n")
+
+        let prompt = """
+        Question: \(question)
+
+        Answer options:
+        \(answersFormatted)
+
+        Which answer option is correct?
+        Reply with ONLY the number (1, 2, 3, or 4). No explanation, no text, just the single digit.
+        """
+
+        do {
+            let result = try await callOpenAIForAnswer(prompt: prompt, answerCount: answers.count)
+            return result
+        } catch {
+            if retryOnFailure {
+                print("   ⚠️ Retrying OpenAI answer analysis...")
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                return try await getCorrectAnswer(for: question, with: answers, retryOnFailure: false)
+            }
+            print("   ❌ OpenAI answer analysis failed after retry: \(error)")
+            return nil
+        }
+    }
+
+    /// Internal helper to call OpenAI API for answer analysis
+    private func callOpenAIForAnswer(prompt: String, answerCount: Int) async throws -> Int? {
+        guard let apiKey = apiKey else { return nil }
+
+        let requestBody: [String: Any] = [
+            "model": model,
+            "messages": [
+                ["role": "system", "content": "You are a quiz expert. Reply with ONLY a single number (1, 2, 3, or 4) indicating the correct answer. No explanation."],
+                ["role": "user", "content": prompt]
+            ],
+            "max_tokens": 5,
+            "temperature": 0.0  // Deterministic for consistent answers
+        ]
+
+        var request = URLRequest(url: URL(string: openAIEndpoint)!)
+        request.httpMethod = "POST"
+        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        request.timeoutInterval = 30
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw VisionAIError.invalidResponse
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            print("   ❌ OpenAI API returned status \(httpResponse.statusCode)")
+            throw VisionAIError.invalidResponse
+        }
+
+        let openAIResponse = try JSONDecoder().decode(OpenAIResponse.self, from: data)
+
+        guard let content = openAIResponse.choices.first?.message.content else {
+            return nil
+        }
+
+        // Parse the number from response
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Try direct integer parse first
+        if let number = Int(trimmed), number >= 1 && number <= answerCount {
+            return number
+        }
+
+        // Try to find any digit in the response
+        if let digit = trimmed.first(where: { $0.isNumber }),
+           let number = Int(String(digit)),
+           number >= 1 && number <= answerCount {
+            return number
+        }
+
+        print("   ⚠️ Could not parse answer from response: '\(trimmed)'")
+        return nil
     }
 
     // MARK: - Main Extraction Method

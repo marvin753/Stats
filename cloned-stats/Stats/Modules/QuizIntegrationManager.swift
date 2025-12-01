@@ -623,11 +623,25 @@ extension QuizIntegrationManager: KeyboardShortcutDelegate {
                 print("   Question: \(extracted.question.prefix(60))...")
                 print("   Answers: \(extracted.answers.count) options")
 
-                // Step 3: Save to file
+                // Step 3: Analyze correct answer using OpenAI
+                print("🤖 Analyzing correct answer with OpenAI...")
+                let correctAnswer = try? await visionAIService.getCorrectAnswer(
+                    for: extracted.question,
+                    with: extracted.answers
+                )
+
+                if let answer = correctAnswer {
+                    print("✅ Correct answer determined: \(answer)")
+                } else {
+                    print("⚠️ Could not determine correct answer (will save as null)")
+                }
+
+                // Step 4: Save to file WITH correct answer
                 let (filePath, questionIndex) = questionFileManager.addQuestion(
                     question: extracted.question,
                     answers: extracted.answers,
-                    coordinates: (x: Double(mouseCoords.x), y: Double(mouseCoords.y))
+                    coordinates: (x: Double(mouseCoords.x), y: Double(mouseCoords.y)),
+                    correctAnswer: correctAnswer
                 )
 
                 print("💾 Question saved to file:")
@@ -702,6 +716,83 @@ extension QuizIntegrationManager: KeyboardShortcutDelegate {
     }
 
     /**
+     * Called when Cmd+I is pressed - Robust blue box capture
+     * Uses LAB color space algorithm for reliable detection
+     */
+    func onRobustCapture() {
+        print("\n" + String(repeating: "=", count: 60))
+        print("🎯 [QuizIntegration] ROBUST CAPTURE (Cmd+I)")
+        print(String(repeating: "=", count: 60))
+
+        // Use robust LAB-based detection
+        guard let result = screenshotCroppingService.captureBlueBoxRobust() else {
+            print("❌ Could not capture blue box using robust algorithm")
+            showNotification(title: "Capture Failed", message: "Robust detection could not find blue box")
+            return
+        }
+
+        guard let imageURL = result.imageURL else {
+            print("❌ Robust capture succeeded but image URL is nil")
+            showNotification(title: "Capture Failed", message: "Failed to save screenshot")
+            return
+        }
+
+        let mouseCoords = result.mouseCoords
+        print("✅ Robust capture successful")
+        print("   Image: \(imageURL.lastPathComponent)")
+
+        // Continue with Vision API extraction (same as existing flow)
+        Task {
+            do {
+                print("🤖 Calling OpenAI Vision API to extract question...")
+                guard let extracted = try await visionAIService.extractSingleQuestion(
+                    from: imageURL,
+                    mouseCoords: (x: mouseCoords.x, y: mouseCoords.y)
+                ) else {
+                    print("❌ Could not extract question from image")
+                    showNotification(title: "Extraction Failed", message: "Could not extract question from image")
+                    return
+                }
+
+                print("✅ Question extracted successfully")
+
+                // Analyze correct answer using OpenAI
+                print("🤖 Analyzing correct answer with OpenAI...")
+                let correctAnswer = try? await visionAIService.getCorrectAnswer(
+                    for: extracted.question,
+                    with: extracted.answers
+                )
+
+                if let answer = correctAnswer {
+                    print("✅ Correct answer determined: \(answer)")
+                } else {
+                    print("⚠️ Could not determine correct answer (will save as null)")
+                }
+
+                // Save to file WITH correct answer
+                let (filePath, questionIndex) = questionFileManager.addQuestion(
+                    question: extracted.question,
+                    answers: extracted.answers,
+                    coordinates: (x: Double(mouseCoords.x), y: Double(mouseCoords.y)),
+                    correctAnswer: correctAnswer
+                )
+
+                let fileInfo = questionFileManager.getCurrentFileInfo()
+                let truncatedQuestion = String(extracted.question.prefix(50))
+                showNotification(
+                    title: "Robust Capture (\(fileInfo.questionCount)/14)",
+                    message: "Q: \(truncatedQuestion)..."
+                )
+
+                print("✅ ROBUST CAPTURE FLOW COMPLETE\n")
+            } catch {
+                print("❌ Error: \(error.localizedDescription)")
+                showNotification(title: "Error", message: error.localizedDescription)
+            }
+        }
+    }
+
+    /**
      * Send questions to backend for OpenAI answer analysis
      */
     private func sendToBackend(questions: [[String: Any]]) async throws -> [Int] {
@@ -732,6 +823,93 @@ extension QuizIntegrationManager: KeyboardShortcutDelegate {
         }
 
         return answers
+    }
+
+    // MARK: - Migration
+
+    /**
+     * Migrate existing JSON files to add correctAnswer field
+     * Calls OpenAI for each question that doesn't have a correctAnswer
+     */
+    func migrateExistingQuestions() async {
+        print("\n" + String(repeating: "=", count: 60))
+        print("📦 MIGRATING EXISTING QUESTIONS")
+        print(String(repeating: "=", count: 60))
+
+        let questionsDir = URL(fileURLWithPath: "/Users/marvinbarsal/Desktop/Universität/Stats/ExtractedQuestions")
+
+        guard let files = try? FileManager.default.contentsOfDirectory(at: questionsDir, includingPropertiesForKeys: nil) else {
+            print("   ❌ No questions directory found")
+            return
+        }
+
+        let jsonFiles = files.filter { $0.pathExtension == "json" }.sorted { $0.lastPathComponent < $1.lastPathComponent }
+        print("   Found \(jsonFiles.count) JSON files to process")
+
+        for fileURL in jsonFiles {
+            print("\n   📄 Processing: \(fileURL.lastPathComponent)")
+
+            guard let data = try? Data(contentsOf: fileURL) else {
+                print("      ❌ Failed to read file")
+                continue
+            }
+
+            // Parse existing file
+            guard var questionFile = try? JSONDecoder().decode(QuestionFileManager.QuestionFile.self, from: data) else {
+                print("      ❌ Failed to decode JSON")
+                continue
+            }
+
+            var updated = false
+
+            for i in 0..<questionFile.questions.count {
+                // Skip if already has correct answer
+                if questionFile.questions[i].correctAnswer != nil {
+                    print("      Q\(questionFile.questions[i].index): Already has answer (\(questionFile.questions[i].correctAnswer!))")
+                    continue
+                }
+
+                let entry = questionFile.questions[i]
+
+                // Get correct answer from OpenAI
+                print("      Q\(entry.index): Analyzing '\(String(entry.question.prefix(40)))...'")
+
+                if let answer = try? await visionAIService.getCorrectAnswer(
+                    for: entry.question,
+                    with: entry.answers
+                ) {
+                    questionFile.questions[i].correctAnswer = answer
+                    updated = true
+                    print("      Q\(entry.index): ✅ Correct answer = \(answer)")
+                } else {
+                    print("      Q\(entry.index): ⚠️ Could not determine answer")
+                }
+
+                // Small delay to avoid rate limiting
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            }
+
+            // Save updated file if changes were made
+            if updated {
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+
+                if let updatedData = try? encoder.encode(questionFile) {
+                    do {
+                        try updatedData.write(to: fileURL)
+                        print("      ✅ Saved updated file")
+                    } catch {
+                        print("      ❌ Failed to save: \(error)")
+                    }
+                }
+            } else {
+                print("      ℹ️ No changes needed")
+            }
+        }
+
+        print("\n" + String(repeating: "=", count: 60))
+        print("✅ MIGRATION COMPLETE!")
+        print(String(repeating: "=", count: 60))
     }
 }
 

@@ -50,6 +50,7 @@ class QuestionFileManager {
         let mouseCoordinates: Coordinates
         let question: String
         let answers: [String]
+        var correctAnswer: Int?     // 1, 2, 3, or 4 (nil if unknown)
     }
 
     struct Coordinates: Codable {
@@ -60,7 +61,7 @@ class QuestionFileManager {
     struct QuestionFile: Codable {
         let fileNumber: Int
         let createdAt: String
-        let questions: [QuestionEntry]
+        var questions: [QuestionEntry]
     }
 
     // MARK: - Initialization
@@ -78,9 +79,10 @@ class QuestionFileManager {
     ///   - question: Question text
     ///   - answers: Array of answer options
     ///   - coordinates: Mouse coordinates where screenshot was taken
+    ///   - correctAnswer: The correct answer number (1, 2, 3, etc.) or nil if unknown
     /// - Returns: Tuple containing file path and question index
     @discardableResult
-    func addQuestion(question: String, answers: [String], coordinates: (x: Double, y: Double)) -> (filePath: String, questionIndex: Int) {
+    func addQuestion(question: String, answers: [String], coordinates: (x: Double, y: Double), correctAnswer: Int? = nil) -> (filePath: String, questionIndex: Int) {
         print("\n[QuestionFileManager] Adding question...")
 
         // Check if we need to create a new file
@@ -101,7 +103,8 @@ class QuestionFileManager {
             timestamp: ISO8601DateFormatter().string(from: Date()),
             mouseCoordinates: Coordinates(x: coordinates.x, y: coordinates.y),
             question: question,
-            answers: answers
+            answers: answers,
+            correctAnswer: correctAnswer
         )
 
         // Add to current questions (maintains chronological order)
