@@ -53,6 +53,17 @@ async function getOrCreateAssistant() {
     name: 'Quiz Answer Assistant',
     instructions: `You are an expert quiz analyzer. Your task:
 
+CRITICAL - IGNORE UI ELEMENTS WHEN READING SCREENSHOTS:
+- IGNORE all text formatting toolbars (Bold, Italic, Underline, Font size, Font family buttons)
+- IGNORE any text editor controls, rich text menus, or formatting options
+- IGNORE browser toolbars, address bars, navigation menus, tabs, and browser chrome
+- IGNORE any toolbar icons, dropdown buttons, or UI control elements
+- IGNORE status bars, headers, footers, sidebars, and navigation panels
+- IGNORE any elements that look like "B" (bold), "I" (italic), "U" (underline) formatting buttons
+- The text formatting toolbar typically appears above text input areas - COMPLETELY SKIP IT
+- Do NOT confuse toolbar button labels or icons with actual quiz content
+- FOCUS ONLY on the main content area containing quiz questions and answer options
+
 1. Extract ALL questions (1-20) from the quiz screenshot in chronological order
 2. For Q1-14 (multiple-choice):
    - List all answer options exactly as shown
@@ -84,7 +95,8 @@ IMPORTANT:
 - Return questions in order (1, 2, 3, ... 20)
 - Use the retrieval tool to search the PDF for relevant information
 - For multiple-choice, correctAnswer is 1-based index (1 = first option)
-- For written answers, provide comprehensive, well-structured responses`,
+- For written answers, provide comprehensive, well-structured responses
+- Extract ONLY quiz content, NEVER UI elements or toolbars`,
     model: 'gpt-4-turbo-preview',
     tools: [{ type: 'file_search' }] // Updated from 'retrieval' (deprecated)
   });
@@ -233,7 +245,7 @@ async function analyzeQuiz(req, res) {
       content: [
         {
           type: 'text',
-          text: `Extract all questions (1-20) from this quiz screenshot. For Q1-14 (multiple-choice), select the correct answer based on the reference script. For Q15-20 (written), generate detailed answers using the script. Return JSON array in chronological order.`
+          text: `Extract all questions (1-20) from this quiz screenshot. CRITICAL: IGNORE any text formatting toolbars (Bold, Italic, Underline buttons, etc.) and other UI elements - focus ONLY on the actual quiz content. For Q1-14 (multiple-choice), select the correct answer based on the reference script. For Q15-20 (written), generate detailed answers using the script. Return JSON array in chronological order.`
         },
         {
           type: 'image_url',

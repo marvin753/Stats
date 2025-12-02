@@ -195,6 +195,16 @@ class VisionAIService {
 
         Extract the COMPLETE question text and ALL answer options.
 
+        CRITICAL - IGNORE UI ELEMENTS:
+        - IGNORE all text formatting toolbars (Bold, Italic, Underline, Font size buttons, etc.)
+        - IGNORE any text editor controls, formatting buttons, or rich text menus
+        - IGNORE browser toolbars, address bars, navigation menus, and browser chrome
+        - IGNORE any toolbar icons, dropdown menus, or UI buttons
+        - IGNORE status bars, headers, footers, and sidebar elements
+        - FOCUS ONLY on the actual quiz question text and answer options
+        - The text formatting toolbar typically appears above or near text input areas - skip it entirely
+        - Do NOT confuse toolbar button labels with quiz content
+
         CRITICAL ORDERING REQUIREMENT:
         - Extract answer options in EXACT visual TOP-TO-BOTTOM order as they appear on screen
         - The FIRST answer shown visually (topmost) MUST be answers[0]
@@ -213,6 +223,7 @@ class VisionAIService {
         - Include the FULL question text without truncation
         - Preserve the EXACT visual top-to-bottom order of answers
         - Do not add explanations, just return the JSON
+        - Extract ONLY quiz content, not UI elements
         """
 
         guard let url = URL(string: openAIEndpoint) else {
@@ -558,6 +569,17 @@ class VisionAIService {
         let systemPrompt = """
         You are a quiz extraction expert. Extract all quiz questions and their answer options from the provided screenshots.
 
+        CRITICAL - IGNORE UI ELEMENTS (DO NOT EXTRACT THESE):
+        - IGNORE all text formatting toolbars (Bold, Italic, Underline, Font size, Font family buttons)
+        - IGNORE any text editor controls, rich text menus, or formatting options
+        - IGNORE browser toolbars, address bars, navigation menus, tabs, and browser chrome
+        - IGNORE any toolbar icons, dropdown buttons, or UI control elements
+        - IGNORE status bars, headers, footers, sidebars, and navigation panels
+        - IGNORE any elements that look like "B" (bold), "I" (italic), "U" (underline) formatting buttons
+        - The text formatting toolbar typically appears above text input areas - COMPLETELY SKIP IT
+        - Do NOT confuse toolbar button labels or icons with actual quiz content
+        - FOCUS ONLY on the main content area containing quiz questions and answer options
+
         IMPORTANT RULES:
         1. Some questions may span multiple screenshots - combine them into single questions
         2. Each question should have exactly 4 answer options (A, B, C, D) when possible
@@ -571,6 +593,7 @@ class VisionAIService {
         4. Do not include any explanation or markdown - ONLY return the JSON array
         5. Preserve exact question wording and answer options as shown in images
         6. If you see partial questions, wait for complete context before extracting
+        7. Extract ONLY actual quiz content - never UI elements, toolbars, or navigation
         """
 
         // Add user message with text instruction

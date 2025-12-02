@@ -825,6 +825,227 @@ extension QuizIntegrationManager: KeyboardShortcutDelegate {
         return answers
     }
 
+    // MARK: - Solution Injection (Cmd+Option+U)
+
+    func onSolutionShortcut() {
+        print("🎯 [QuizIntegration] Solution shortcut triggered (Cmd+Option+U)")
+
+        Task { @MainActor in
+            await performSolutionWorkflow()
+        }
+    }
+
+    @MainActor
+    private func performSolutionWorkflow() async {
+        // Safeguard 11: Check backend health FIRST
+        do {
+            let isHealthy = try await SolutionAPIService.shared.checkHealth()
+            guard isHealthy else {
+                showAlert(
+                    title: "Backend Unavailable",
+                    message: "The backend server is not responding.\n\nPlease start it with:\ncd backend && npm start"
+                )
+                return
+            }
+        } catch {
+            showAlert(
+                title: "Cannot Connect to Backend",
+                message: "Error: \(error.localizedDescription)\n\nPlease ensure the backend server is running on localhost:3000"
+            )
+            return
+        }
+
+        // Check permissions
+        let permissions = UserPermissionManager.shared.checkAllPermissions()
+        guard permissions.inputMonitoring && permissions.accessibility else {
+            print("⚠️ [QuizIntegration] Missing permissions")
+            UserPermissionManager.shared.showPermissionGuidance()
+            return
+        }
+
+        // Check reference file configured
+        guard ReferenceFileManager.shared.hasReferenceFile else {
+            showAlert(
+                title: "No Reference PDF",
+                message: "No reference PDF is selected.\n\nPlease select a PDF in the Screenshots settings."
+            )
+            return
+        }
+
+        // Check if reference is uploaded to backend
+        let hasBackendReference = await SolutionAPIService.shared.hasReferenceFile
+        if !hasBackendReference {
+            print("[QuizIntegration] Reference not uploaded to backend - uploading now...")
+            do {
+                _ = try await SolutionAPIService.shared.uploadCurrentReferencePDF()
+            } catch {
+                showAlert(
+                    title: "Upload Failed",
+                    message: "Failed to upload reference PDF: \(error.localizedDescription)"
+                )
+                return
+            }
+        }
+
+        // Get last question from JSON files
+        guard let lastQuestion = await getLastQuestionAsync() else {
+            showAlert(
+                title: "No Questions Found",
+                message: "No questions found in the JSON files.\n\nCapture some questions first using Cmd+Option+O"
+            )
+            return
+        }
+
+        print("[QuizIntegration] Last question: \"\(lastQuestion.question.prefix(50))...\"")
+        print("[QuizIntegration] Answers: \(lastQuestion.answers)")
+
+        // Get solution from backend
+        do {
+            print("[QuizIntegration] Requesting solution from backend...")
+            let solution = try await SolutionAPIService.shared.getSolution(
+                question: lastQuestion.question,
+                answers: lastQuestion.answers
+            )
+
+            print("✅ [QuizIntegration] Solution received:")
+            print("   - Length: \(solution.count) characters")
+            print("   - Preview: \"\(String(solution.prefix(200)))...\"")
+            print("   - Is empty: \(solution.isEmpty)")
+
+            // Verify solution is not empty
+            guard !solution.isEmpty else {
+                print("❌ [QuizIntegration] ERROR: Solution is EMPTY!")
+                showAlert(
+                    title: "Empty Solution",
+                    message: "The backend returned an empty solution. Please try again."
+                )
+                return
+            }
+
+            // Save solution to files
+            saveSolution(solution, for: lastQuestion)
+
+            // Start text injection
+            print("[QuizIntegration] Starting text injection...")
+            print("[QuizIntegration] Setting delegate and calling startInjection()...")
+            TextInjectionEngine.shared.delegate = self
+            TextInjectionEngine.shared.startInjection(with: solution)
+            print("[QuizIntegration] startInjection() called successfully")
+
+        } catch {
+            print("❌ [QuizIntegration] Solution request failed: \(error)")
+            showAlert(
+                title: "Solution Failed",
+                message: "Failed to get solution: \(error.localizedDescription)"
+            )
+        }
+    }
+
+    private func getLastQuestionAsync() async -> (question: String, answers: [String], correctAnswer: Int?)? {
+        return QuestionFileManager.shared.getLastQuestion()
+    }
+
+    private func saveSolution(_ solution: String, for question: (question: String, answers: [String], correctAnswer: Int?)) {
+        // Use SolutionStorageManager for dual-file storage:
+        // - all_solutions.json (history)
+        // - current_solution.txt (for injection)
+        let success = SolutionStorageManager.shared.saveSolution(
+            question: question.question,
+            answers: question.answers,
+            solution: solution
+        )
+
+        if success {
+            print("✅ [QuizIntegration] Solution saved via SolutionStorageManager")
+            print("   - Total solutions: \(SolutionStorageManager.shared.getTotalSolutionCount())")
+        } else {
+            print("⚠️ [QuizIntegration] SolutionStorageManager failed to save solution")
+        }
+
+        // Also save to legacy files for backwards compatibility
+        saveLegacySolution(solution, for: question)
+    }
+
+    /// Save to legacy file locations for backwards compatibility
+    private func saveLegacySolution(_ solution: String, for question: (question: String, answers: [String], correctAnswer: Int?)) {
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+
+        let solutionData: [String: Any] = [
+            "question": question.question,
+            "answers": question.answers,
+            "correctAnswer": question.correctAnswer as Any,
+            "solution": solution,
+            "timestamp": timestamp
+        ]
+
+        // Save to latest_solution.json (overwrites)
+        let latestSolutionURL = URL(fileURLWithPath: "/Users/marvinbarsal/Desktop/Universität/Stats/latest_solution.json")
+
+        do {
+            let data = try JSONSerialization.data(withJSONObject: solutionData, options: .prettyPrinted)
+            try data.write(to: latestSolutionURL)
+            print("✅ [QuizIntegration] Legacy solution saved to: \(latestSolutionURL.path)")
+        } catch {
+            print("⚠️ [QuizIntegration] Failed to save legacy solution: \(error)")
+        }
+
+        // Append to solutions_history.json (legacy master file)
+        appendToLegacyHistory(solutionData)
+    }
+
+    /// Append solution to the legacy history file
+    private func appendToLegacyHistory(_ solutionData: [String: Any]) {
+        let historyURL = URL(fileURLWithPath: "/Users/marvinbarsal/Desktop/Universität/Stats/solutions_history.json")
+
+        // Create history structure
+        var historyEntry: [String: Any] = solutionData
+        historyEntry["id"] = UUID().uuidString
+
+        do {
+            var historyArray: [[String: Any]] = []
+
+            // Load existing history if file exists
+            if FileManager.default.fileExists(atPath: historyURL.path) {
+                let existingData = try Data(contentsOf: historyURL)
+                if let existingHistory = try JSONSerialization.jsonObject(with: existingData) as? [String: Any],
+                   let entries = existingHistory["solutions"] as? [[String: Any]] {
+                    historyArray = entries
+                }
+            }
+
+            // Append new entry
+            historyArray.append(historyEntry)
+
+            // Create history document
+            let historyDocument: [String: Any] = [
+                "version": "1.0",
+                "lastUpdated": ISO8601DateFormatter().string(from: Date()),
+                "totalSolutions": historyArray.count,
+                "solutions": historyArray
+            ]
+
+            // Save updated history
+            let historyData = try JSONSerialization.data(withJSONObject: historyDocument, options: .prettyPrinted)
+            try historyData.write(to: historyURL)
+
+            print("✅ [QuizIntegration] Legacy history updated (total: \(historyArray.count))")
+
+        } catch {
+            print("⚠️ [QuizIntegration] Failed to append to legacy history: \(error)")
+        }
+    }
+
+    private func showAlert(title: String, message: String) {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = title
+            alert.informativeText = message
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+
     // MARK: - Migration
 
     /**
@@ -918,6 +1139,35 @@ extension QuizIntegrationManager: QuizHTTPServerDelegate {
     func didReceiveAnswers(_ answers: [Int]) {
         print("📨 Integration Manager received answers: \(answers)")
         triggerQuiz(with: answers)
+    }
+}
+
+// MARK: - TextInjectionEngineDelegate
+
+extension QuizIntegrationManager: TextInjectionEngineDelegate {
+    func injectionDidStart() {
+        print("✅ [QuizIntegration] Text injection started")
+    }
+
+    func injectionDidComplete() {
+        print("✅ [QuizIntegration] Text injection completed")
+    }
+
+    func injectionDidCancel() {
+        print("⚠️ [QuizIntegration] Text injection cancelled by user (ESC)")
+    }
+
+    func injectionDidFail(error: TextInjectionError) {
+        print("❌ [QuizIntegration] Text injection failed: \(error.localizedDescription)")
+        showAlert(
+            title: "Injection Failed",
+            message: "Text injection failed: \(error.localizedDescription)"
+        )
+    }
+
+    func injectionProgress(current: Int, total: Int) {
+        // Optional: Update UI with progress
+        // print("[QuizIntegration] Injection progress: \(current)/\(total)")
     }
 }
 

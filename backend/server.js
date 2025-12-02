@@ -12,6 +12,9 @@ const axios = require('axios');
 const WebSocket = require('ws');
 const http = require('http');
 const rateLimit = require('express-rate-limit');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -163,6 +166,56 @@ const openaiLimiter = rateLimit({
 if (process.env.NODE_ENV !== 'test') {
   app.use(generalLimiter);
 }
+
+// ============== PDF HANDLING SETUP ==============
+
+// Multer configuration for multipart upload (Safeguard 3 & 10)
+const upload = multer({
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only PDF files are allowed'), false);
+        }
+    }
+});
+
+// Reference file cache (Safeguard 3: Persistent storage)
+const CACHE_FILE = path.join(__dirname, 'reference-cache.json');
+let referenceFileCache = {
+    fileId: null,
+    filename: null,
+    uploadedAt: null,
+    fileSizeBytes: null
+};
+
+// Load cache on startup
+function loadReferenceCache() {
+    try {
+        if (fs.existsSync(CACHE_FILE)) {
+            const data = fs.readFileSync(CACHE_FILE, 'utf8');
+            referenceFileCache = JSON.parse(data);
+            console.log(`✅ Loaded reference cache: ${referenceFileCache.filename || 'none'}`);
+        }
+    } catch (error) {
+        console.log('⚠️ No existing reference cache found');
+    }
+}
+
+// Save cache to disk
+function saveReferenceCache() {
+    try {
+        fs.writeFileSync(CACHE_FILE, JSON.stringify(referenceFileCache, null, 2));
+        console.log('✅ Reference cache saved');
+    } catch (error) {
+        console.error('❌ Failed to save reference cache:', error.message);
+    }
+}
+
+// Load cache on startup
+loadReferenceCache();
 
 /**
  * Call OpenAI API to get correct answer indices
@@ -363,6 +416,232 @@ app.post('/api/analyze', openaiLimiter, async (req, res) => {
   }
 });
 
+// ============== NEW PDF ENDPOINTS ==============
+
+/**
+ * POST /api/upload-reference
+ * Upload PDF reference file
+ */
+app.post('/api/upload-reference', upload.single('pdf'), async (req, res) => {
+    console.log('\n📄 [upload-reference] Processing PDF upload...');
+
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No PDF file provided', status: 'error' });
+        }
+
+        console.log(`   File: ${req.file.originalname} (${(req.file.size / 1024 / 1024).toFixed(2)} MB)`);
+
+        // Delete old file from OpenAI if exists
+        if (referenceFileCache.fileId) {
+            console.log(`   Deleting old file: ${referenceFileCache.fileId}`);
+            try {
+                await axios.delete(`https://api.openai.com/v1/files/${referenceFileCache.fileId}`, {
+                    headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` }
+                });
+                console.log('   ✅ Old file deleted');
+            } catch (deleteError) {
+                console.log('   ⚠️ Could not delete old file (may already be deleted)');
+            }
+        }
+
+        // Upload new file to OpenAI Files API
+        const FormData = require('form-data');
+        const formData = new FormData();
+        formData.append('purpose', 'assistants');
+        formData.append('file', req.file.buffer, {
+            filename: req.file.originalname,
+            contentType: 'application/pdf'
+        });
+
+        const uploadResponse = await axios.post('https://api.openai.com/v1/files', formData, {
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                ...formData.getHeaders()
+            },
+            maxContentLength: 100 * 1024 * 1024,
+            maxBodyLength: 100 * 1024 * 1024
+        });
+
+        const fileId = uploadResponse.data.id;
+        console.log(`   ✅ File uploaded to OpenAI: ${fileId}`);
+
+        // Update cache
+        referenceFileCache = {
+            fileId: fileId,
+            filename: req.file.originalname,
+            uploadedAt: new Date().toISOString(),
+            fileSizeBytes: req.file.size
+        };
+        saveReferenceCache();
+
+        res.json({
+            fileId: fileId,
+            filename: req.file.originalname,
+            uploadedAt: referenceFileCache.uploadedAt,
+            fileSizeMB: (req.file.size / 1024 / 1024).toFixed(2),
+            status: 'success'
+        });
+
+    } catch (error) {
+        console.error('❌ [upload-reference] Error:', error.message);
+        res.status(500).json({
+            error: 'Failed to upload reference file',
+            message: error.message,
+            status: 'error'
+        });
+    }
+});
+
+/**
+ * DELETE /api/delete-reference
+ * Delete current reference file
+ */
+app.delete('/api/delete-reference', async (req, res) => {
+    console.log('\n🗑️ [delete-reference] Deleting reference file...');
+
+    try {
+        if (!referenceFileCache.fileId) {
+            return res.json({ status: 'no_file', message: 'No reference file to delete' });
+        }
+
+        // Delete from OpenAI
+        try {
+            await axios.delete(`https://api.openai.com/v1/files/${referenceFileCache.fileId}`, {
+                headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` }
+            });
+            console.log('   ✅ File deleted from OpenAI');
+        } catch (deleteError) {
+            console.log('   ⚠️ File may already be deleted from OpenAI');
+        }
+
+        // Clear cache
+        referenceFileCache = {
+            fileId: null,
+            filename: null,
+            uploadedAt: null,
+            fileSizeBytes: null
+        };
+        saveReferenceCache();
+
+        res.json({ status: 'deleted', message: 'Reference file deleted' });
+
+    } catch (error) {
+        console.error('❌ [delete-reference] Error:', error.message);
+        res.status(500).json({ error: error.message, status: 'error' });
+    }
+});
+
+/**
+ * GET /api/reference-status
+ * Get current reference file status
+ */
+app.get('/api/reference-status', (req, res) => {
+    res.json({
+        hasReference: !!referenceFileCache.fileId,
+        filename: referenceFileCache.filename,
+        fileId: referenceFileCache.fileId,
+        uploadedAt: referenceFileCache.uploadedAt,
+        fileSizeMB: referenceFileCache.fileSizeBytes ?
+            (referenceFileCache.fileSizeBytes / 1024 / 1024).toFixed(2) : null
+    });
+});
+
+/**
+ * POST /api/solve
+ * Get solution for a question using reference PDF
+ */
+app.post('/api/solve', async (req, res) => {
+    console.log('\n📝 [solve] Processing solution request...');
+
+    try {
+        const { question, answers } = req.body;
+
+        if (!question || !answers || !Array.isArray(answers)) {
+            return res.status(400).json({
+                error: 'Invalid request. Required: question (string), answers (array)',
+                status: 'error'
+            });
+        }
+
+        if (!referenceFileCache.fileId) {
+            return res.status(400).json({
+                error: 'No reference PDF uploaded. Please upload a reference document first.',
+                status: 'error'
+            });
+        }
+
+        console.log(`   Question: "${question.substring(0, 50)}..."`);
+        console.log(`   Answers: ${answers.length} options`);
+        console.log(`   Using reference: ${referenceFileCache.filename}`);
+
+        // Format the question with answers
+        const formattedQuestion = `Question: ${question}\n\nAnswer options:\n${
+            answers.map((a, i) => `${i + 1}. ${a}`).join('\n')
+        }`;
+
+        // Call OpenAI with file context
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: OPENAI_MODEL || 'gpt-4-turbo-preview',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are an expert tutor helping a student understand quiz questions.
+You have access to the student's reference document (${referenceFileCache.filename}).
+Provide a detailed, educational explanation of the correct answer.
+Include:
+1. The correct answer number (1-4)
+2. Why this answer is correct
+3. Why the other answers are incorrect
+4. Relevant concepts from the reference material
+Keep the explanation clear and comprehensive but not overly long.`
+                },
+                {
+                    role: 'user',
+                    content: formattedQuestion
+                }
+            ],
+            max_tokens: 1500,
+            temperature: 0.3
+        }, {
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: 60000
+        });
+
+        const solution = response.data.choices[0].message.content.trim();
+        console.log(`   ✅ Solution generated (${solution.length} chars)`);
+
+        // Save solution to file for reference
+        const solutionFile = path.join(__dirname, 'latest_solution.json');
+        fs.writeFileSync(solutionFile, JSON.stringify({
+            question,
+            answers,
+            solution,
+            timestamp: new Date().toISOString(),
+            referenceFile: referenceFileCache.filename
+        }, null, 2));
+
+        res.json({
+            solution,
+            questionLength: question.length,
+            solutionLength: solution.length,
+            referenceFile: referenceFileCache.filename,
+            status: 'success'
+        });
+
+    } catch (error) {
+        console.error('❌ [solve] Error:', error.message);
+        res.status(500).json({
+            error: 'Failed to generate solution',
+            message: error.message,
+            status: 'error'
+        });
+    }
+});
+
 /**
  * GET /health
  * Health check endpoint
@@ -387,13 +666,21 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     name: 'Quiz Analysis Backend',
-    version: '1.0.0',
+    version: '2.0.0',
     endpoints: {
       'POST /api/analyze': 'Send questions for analysis',
+      'POST /api/upload-reference': 'Upload PDF reference file (multipart/form-data)',
+      'DELETE /api/delete-reference': 'Delete current reference file',
+      'GET /api/reference-status': 'Get reference file status',
+      'POST /api/solve': 'Get solution for a question using reference PDF',
       'GET /health': 'Health check',
       'WS /': 'WebSocket for real-time updates'
     },
-    documentation: 'POST /api/analyze with body: { questions: [...] }'
+    documentation: {
+      analyze: 'POST /api/analyze with body: { questions: [...] }',
+      upload: 'POST /api/upload-reference with multipart file field "pdf"',
+      solve: 'POST /api/solve with body: { question: "...", answers: ["A", "B", "C", "D"] }'
+    }
   });
 });
 

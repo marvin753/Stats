@@ -7,6 +7,7 @@
  * - Cmd+Option+O: Capture screenshot (observed but not consumed)
  * - Cmd+Option+P: Process all screenshots (observed but not consumed)
  * - Cmd+I: Robust blue box capture (observed but not consumed)
+ * - Cmd+Option+U: Solution injection (observed but not consumed)
  *
  * IMPORTANT: Uses .listenOnly mode exclusively to avoid triggering macOS security violations.
  * Events are observed and passed through without modification to prevent app termination.
@@ -19,6 +20,11 @@ protocol KeyboardShortcutDelegate: AnyObject {
     func onCaptureScreenshot()  // Called when Cmd+Option+O is pressed
     func onProcessScreenshots() // Called when Cmd+Option+P is pressed (kept for future use)
     func onRobustCapture()      // Called when Cmd+Option+I is pressed
+    func onSolutionShortcut()   // Called when Cmd+Option+U is pressed
+}
+
+extension KeyboardShortcutDelegate {
+    func onSolutionShortcut() {}  // Default empty implementation
 }
 
 class KeyboardShortcutManager: NSObject {
@@ -44,7 +50,7 @@ class KeyboardShortcutManager: NSObject {
 
     override init() {
         super.init()
-        print("[KeyboardManager] Initialized for keyboard shortcuts: Cmd+Option+O (capture), Cmd+Option+P (process), Cmd+Option+I (robust capture)")
+        print("[KeyboardManager] Initialized for keyboard shortcuts: Cmd+Option+O (capture), Cmd+Option+P (process), Cmd+I (robust capture), Cmd+Option+U (solution)")
     }
 
     // MARK: - Public Methods
@@ -75,7 +81,8 @@ class KeyboardShortcutManager: NSObject {
      * Monitors for:
      * - Cmd+Option+O: Capture screenshot
      * - Cmd+Option+P: Process all screenshots
-     * - Cmd+Option+I: Robust blue box capture
+     * - Cmd+I: Robust blue box capture
+     * - Cmd+Option+U: Solution injection
      */
     @discardableResult
     func registerGlobalShortcut() -> Bool {
@@ -141,7 +148,7 @@ class KeyboardShortcutManager: NSObject {
             print("\n" + String(repeating: "=", count: 60))
             print("✅ [KeyboardManager] Global keyboard shortcuts registered")
             print("   Configuration: \(config.name)")
-            print("   Monitoring: Cmd+Option+O, Cmd+Option+P, Cmd+Option+I")
+            print("   Monitoring: Cmd+Option+O, Cmd+Option+P, Cmd+I, Cmd+Option+U")
             print("   Event consumption: \(config.options == .defaultTap ? "ENABLED" : "DISABLED")")
             print(String(repeating: "=", count: 60))
 
@@ -223,6 +230,16 @@ class KeyboardShortcutManager: NSObject {
                 }
 
                 // FIXED: In listenOnly mode, we always pass through the original event
+                print("[KeyboardManager] Event observed (listenOnly mode - not consumed)")
+                return Unmanaged.passUnretained(event)
+            }
+
+            // Cmd+Option+U - Solution injection
+            if keyCode == Int64(kVK_ANSI_U) {  // kVK_ANSI_U = 32
+                print("[KeyboardManager] Cmd+Option+U detected: Solution injection")
+                DispatchQueue.main.async {
+                    manager.delegate?.onSolutionShortcut()
+                }
                 print("[KeyboardManager] Event observed (listenOnly mode - not consumed)")
                 return Unmanaged.passUnretained(event)
             }

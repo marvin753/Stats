@@ -274,4 +274,121 @@ class QuestionFileManager {
         let filename = String(format: "questions_%03d.json", number)
         return baseDirectory.appendingPathComponent(filename)
     }
+
+    // MARK: - Get Last Question (Safeguard 5: Edge Cases)
+
+    /// Get the last question from the latest JSON file
+    /// Handles: empty files, invalid JSON, concurrent writes, empty arrays
+    /// Falls back to previous files if latest is unusable
+    func getLastQuestion() -> (question: String, answers: [String], correctAnswer: Int?)? {
+        print("[QuestionFileManager] Getting last question...")
+
+        // 1. Find all JSON files in ExtractedQuestions directory
+        let files = findQuestionFiles()
+        guard !files.isEmpty else {
+            print("⚠️ [QuestionFileManager] No question files found")
+            return nil
+        }
+
+        // 2. Sort by file number (descending) - try newest first
+        let sortedFiles = files.sorted { extractFileNumber($0) > extractFileNumber($1) }
+
+        // 3. Try each file until we find a valid question
+        for fileURL in sortedFiles {
+            if let result = loadLastQuestionFromFile(fileURL) {
+                return result
+            }
+        }
+
+        print("⚠️ [QuestionFileManager] No valid questions found in any file")
+        return nil
+    }
+
+    /// Find all question JSON files in the directory
+    private func findQuestionFiles() -> [URL] {
+        do {
+            let files = try FileManager.default.contentsOfDirectory(
+                at: baseDirectory,
+                includingPropertiesForKeys: [.contentModificationDateKey],
+                options: [.skipsHiddenFiles]
+            )
+            return files.filter {
+                $0.lastPathComponent.hasPrefix("questions_") &&
+                $0.pathExtension == "json"
+            }
+        } catch {
+            print("❌ [QuestionFileManager] Error listing files: \(error)")
+            return []
+        }
+    }
+
+    /// Extract file number from filename (e.g., "questions_003.json" -> 3)
+    private func extractFileNumber(_ url: URL) -> Int {
+        let filename = url.deletingPathExtension().lastPathComponent
+        let numberString = filename.replacingOccurrences(of: "questions_", with: "")
+        return Int(numberString) ?? 0
+    }
+
+    /// Load the last question from a specific file with file coordination
+    private func loadLastQuestionFromFile(_ fileURL: URL) -> (question: String, answers: [String], correctAnswer: Int?)? {
+        print("[QuestionFileManager] Trying file: \(fileURL.lastPathComponent)")
+
+        // Use NSFileCoordinator to handle concurrent access
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinatorError: NSError?
+        var result: (String, [String], Int?)?
+
+        coordinator.coordinate(
+            readingItemAt: fileURL,
+            options: .withoutChanges,
+            error: &coordinatorError
+        ) { url in
+            // Read file data
+            guard let data = try? Data(contentsOf: url) else {
+                print("   ⚠️ Cannot read file data")
+                return
+            }
+
+            // Check for empty file
+            guard !data.isEmpty else {
+                print("   ⚠️ File is empty")
+                return
+            }
+
+            // Parse JSON with error handling
+            do {
+                let questionFile = try JSONDecoder().decode(QuestionFile.self, from: data)
+
+                // Check for empty questions array
+                guard !questionFile.questions.isEmpty else {
+                    print("   ⚠️ Questions array is empty")
+                    return
+                }
+
+                // Get last question (highest index)
+                guard let lastQuestion = questionFile.questions.max(by: { $0.index < $1.index }) else {
+                    print("   ⚠️ Could not find question with highest index")
+                    return
+                }
+
+                // Validate question has required data
+                guard !lastQuestion.question.isEmpty, !lastQuestion.answers.isEmpty else {
+                    print("   ⚠️ Question or answers are empty")
+                    return
+                }
+
+                result = (lastQuestion.question, lastQuestion.answers, lastQuestion.correctAnswer)
+                print("   ✅ Found question #\(lastQuestion.index): \"\(lastQuestion.question.prefix(50))...\"")
+
+            } catch {
+                print("   ⚠️ JSON decode error: \(error.localizedDescription)")
+            }
+        }
+
+        if let error = coordinatorError {
+            print("   ❌ File coordination error: \(error.localizedDescription)")
+        }
+
+        return result
+    }
 }
