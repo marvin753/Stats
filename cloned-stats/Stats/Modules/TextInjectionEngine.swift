@@ -136,6 +136,90 @@ final class TextInjectionEngine {
     private var isActive: Bool = false
     private var shouldAbort: Bool = false
 
+    // MARK: - HID Event Injection (R1, R5, R8)
+    /// Tag to identify self-injected events (prevents reprocessing loops)
+    /// "TEXTINJ\0" encoded as hex: 0x54455854494E4A00
+    private static let injectedEventTag: Int64 = 0x54455854_494E4A00
+
+    /// Persistent HID event source - created once per injection session (R1)
+    /// macOS tracks HID state IDs; inconsistent source IDs cause event rejection
+    private var hidEventSource: CGEventSource?
+
+    /// Track if we have an unpaired KeyDown posted (R5)
+    /// If cleanup/emergencyStop occurs, we must emit matching KeyUp to prevent stuck keys
+    private var pendingKeyDown: Bool = false
+    private var pendingKeyCode: CGKeyCode = 0
+
+    // MARK: - Virtual Key Code Mapping (US ANSI Keyboard)
+    /// Maps ASCII characters to (virtualKeyCode, requiresShift)
+    /// Used to generate proper HID-level key events with correct keycodes
+    private static let asciiToVirtualKey: [Character: (keyCode: Int, shift: Bool)] = [
+        // Row 1: Numbers and their shifted symbols
+        "1": (kVK_ANSI_1, false), "!": (kVK_ANSI_1, true),
+        "2": (kVK_ANSI_2, false), "@": (kVK_ANSI_2, true),
+        "3": (kVK_ANSI_3, false), "#": (kVK_ANSI_3, true),
+        "4": (kVK_ANSI_4, false), "$": (kVK_ANSI_4, true),
+        "5": (kVK_ANSI_5, false), "%": (kVK_ANSI_5, true),
+        "6": (kVK_ANSI_6, false), "^": (kVK_ANSI_6, true),
+        "7": (kVK_ANSI_7, false), "&": (kVK_ANSI_7, true),
+        "8": (kVK_ANSI_8, false), "*": (kVK_ANSI_8, true),
+        "9": (kVK_ANSI_9, false), "(": (kVK_ANSI_9, true),
+        "0": (kVK_ANSI_0, false), ")": (kVK_ANSI_0, true),
+
+        // Row 1 additional keys
+        "-": (kVK_ANSI_Minus, false), "_": (kVK_ANSI_Minus, true),
+        "=": (kVK_ANSI_Equal, false), "+": (kVK_ANSI_Equal, true),
+
+        // Row 2: QWERTY
+        "q": (kVK_ANSI_Q, false), "Q": (kVK_ANSI_Q, true),
+        "w": (kVK_ANSI_W, false), "W": (kVK_ANSI_W, true),
+        "e": (kVK_ANSI_E, false), "E": (kVK_ANSI_E, true),
+        "r": (kVK_ANSI_R, false), "R": (kVK_ANSI_R, true),
+        "t": (kVK_ANSI_T, false), "T": (kVK_ANSI_T, true),
+        "y": (kVK_ANSI_Y, false), "Y": (kVK_ANSI_Y, true),
+        "u": (kVK_ANSI_U, false), "U": (kVK_ANSI_U, true),
+        "i": (kVK_ANSI_I, false), "I": (kVK_ANSI_I, true),
+        "o": (kVK_ANSI_O, false), "O": (kVK_ANSI_O, true),
+        "p": (kVK_ANSI_P, false), "P": (kVK_ANSI_P, true),
+        "[": (kVK_ANSI_LeftBracket, false), "{": (kVK_ANSI_LeftBracket, true),
+        "]": (kVK_ANSI_RightBracket, false), "}": (kVK_ANSI_RightBracket, true),
+        "\\": (kVK_ANSI_Backslash, false), "|": (kVK_ANSI_Backslash, true),
+
+        // Row 3: ASDF
+        "a": (kVK_ANSI_A, false), "A": (kVK_ANSI_A, true),
+        "s": (kVK_ANSI_S, false), "S": (kVK_ANSI_S, true),
+        "d": (kVK_ANSI_D, false), "D": (kVK_ANSI_D, true),
+        "f": (kVK_ANSI_F, false), "F": (kVK_ANSI_F, true),
+        "g": (kVK_ANSI_G, false), "G": (kVK_ANSI_G, true),
+        "h": (kVK_ANSI_H, false), "H": (kVK_ANSI_H, true),
+        "j": (kVK_ANSI_J, false), "J": (kVK_ANSI_J, true),
+        "k": (kVK_ANSI_K, false), "K": (kVK_ANSI_K, true),
+        "l": (kVK_ANSI_L, false), "L": (kVK_ANSI_L, true),
+        ";": (kVK_ANSI_Semicolon, false), ":": (kVK_ANSI_Semicolon, true),
+        "'": (kVK_ANSI_Quote, false), "\"": (kVK_ANSI_Quote, true),
+
+        // Row 4: ZXCV
+        "z": (kVK_ANSI_Z, false), "Z": (kVK_ANSI_Z, true),
+        "x": (kVK_ANSI_X, false), "X": (kVK_ANSI_X, true),
+        "c": (kVK_ANSI_C, false), "C": (kVK_ANSI_C, true),
+        "v": (kVK_ANSI_V, false), "V": (kVK_ANSI_V, true),
+        "b": (kVK_ANSI_B, false), "B": (kVK_ANSI_B, true),
+        "n": (kVK_ANSI_N, false), "N": (kVK_ANSI_N, true),
+        "m": (kVK_ANSI_M, false), "M": (kVK_ANSI_M, true),
+        ",": (kVK_ANSI_Comma, false), "<": (kVK_ANSI_Comma, true),
+        ".": (kVK_ANSI_Period, false), ">": (kVK_ANSI_Period, true),
+        "/": (kVK_ANSI_Slash, false), "?": (kVK_ANSI_Slash, true),
+
+        // Grave/Tilde key
+        "`": (kVK_ANSI_Grave, false), "~": (kVK_ANSI_Grave, true),
+    ]
+
+    /// Lookup virtual key code for a character
+    /// Returns (keyCode, requiresShift) or nil if character has no standard key mapping
+    private func lookupVirtualKey(for char: Character) -> (keyCode: Int, shift: Bool)? {
+        return Self.asciiToVirtualKey[char]
+    }
+
     // MARK: - Statistics
     private var injectionStartTime: CFAbsoluteTime = 0
     private var successfulInjections: Int = 0
@@ -199,6 +283,15 @@ final class TextInjectionEngine {
         failedInjections = 0
         injectionStartTime = CFAbsoluteTimeGetCurrent()
 
+        // R1: Create persistent HID event source for this injection session
+        guard let source = CGEventSource(stateID: .hidSystemState) else {
+            TextInjectionDebug.log(.error, "Failed to create HID event source")
+            delegate?.injectionDidFail(error: .eventTapCreationFailed)
+            return
+        }
+        self.hidEventSource = source
+        TextInjectionDebug.log(.state, "Persistent HID event source created")
+
         TextInjectionDebug.log(.state, "State initialized:")
         TextInjectionDebug.log(.state, "  - solutionCharacters.count = \(solutionCharacters.count)")
         TextInjectionDebug.log(.state, "  - currentCharIndex = \(currentCharIndex)")
@@ -224,10 +317,10 @@ final class TextInjectionEngine {
         emergencyStop()
     }
 
-    // MARK: - Event Tap Creation (Safeguard 9: .commonModes)
+    // MARK: - Event Tap Creation (HID-level with .tailAppendEventTap)
 
     private func createEventTap() -> Bool {
-        TextInjectionDebug.log(.state, "Creating event tap...")
+        TextInjectionDebug.log(.state, "Creating HID-level event tap...")
 
         // Event mask for keyDown only (NOT keyUp - we only need to intercept keyDown)
         let eventMask = (1 << CGEventType.keyDown.rawValue)
@@ -236,23 +329,24 @@ final class TextInjectionEngine {
         // Get pointer to self for callback
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
 
-        // Diagnostic #13: Create event tap with .cgSessionEventTap and .defaultTap
-        TextInjectionDebug.log(.state, "DIAGNOSTIC #13: Creating tap with .cgSessionEventTap, .defaultTap")
+        // R4: Create HID-level event tap with .tailAppendEventTap for proper queue ordering
+        TextInjectionDebug.log(.state, "Creating tap with .cghidEventTap, .tailAppendEventTap")
 
         guard let tap = CGEvent.tapCreate(
-            tap: .cgSessionEventTap,        // Diagnostic #13: Session level tap
-            place: .headInsertEventTap,
-            options: .defaultTap,           // Diagnostic #13: NOT .listenOnly - we need to consume events
+            tap: .cghidEventTap,            // HID-level tap for hardware-like events
+            place: .tailAppendEventTap,     // R4: Proper HID queue ordering, prevents replay attack classification
+            options: .defaultTap,           // NOT .listenOnly - we need to consume events
             eventsOfInterest: CGEventMask(eventMask),
             callback: TextInjectionEngine.eventTapCallback,
             userInfo: selfPtr
         ) else {
-            TextInjectionDebug.log(.error, "DIAGNOSTIC #13 FAIL: Failed to create event tap!")
-            TextInjectionDebug.log(.error, "Check Accessibility permissions in System Preferences")
+            TextInjectionDebug.log(.error, "Failed to create HID-level event tap!")
+            TextInjectionDebug.log(.error, "Requires Input Monitoring permission in System Preferences")
+            TextInjectionDebug.log(.error, "Security & Privacy -> Privacy -> Input Monitoring -> Add Stats")
             return false
         }
 
-        TextInjectionDebug.log(.state, "DIAGNOSTIC #13 PASS: Event tap created successfully")
+        TextInjectionDebug.log(.state, "HID-level event tap created successfully")
 
         self.eventTap = tap
 
@@ -276,6 +370,13 @@ final class TextInjectionEngine {
         return true
     }
 
+    // MARK: - Secure Input Check
+
+    /// Check if Secure Input is active (password fields, etc.)
+    private func isSecureInputActive() -> Bool {
+        return IsSecureEventInputEnabled()
+    }
+
     // MARK: - Event Tap Callback
 
     private static let eventTapCallback: CGEventTapCallBack = { proxy, type, event, refcon in
@@ -288,6 +389,12 @@ final class TextInjectionEngine {
     }
 
     private func handleEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        // R8: Check for self-injected events FIRST - prevent infinite loops
+        let userData = event.getIntegerValueField(.eventSourceUserData)
+        if userData == Self.injectedEventTag {
+            TextInjectionDebug.log(.event, "Passing through self-injected event")
+            return Unmanaged.passUnretained(event)
+        }
 
         // Diagnostic #4: Log that event tap callback was triggered
         TextInjectionDebug.log(.event, "DIAGNOSTIC #4: Event tap callback triggered, type=\(type.rawValue)")
@@ -357,6 +464,12 @@ final class TextInjectionEngine {
             return nil
         }
 
+        // R6: NEVER inject during Secure Input - causes app termination
+        if isSecureInputActive() {
+            TextInjectionDebug.log(.error, "Secure Input active - skipping injection")
+            return nil  // Swallow but don't inject
+        }
+
         // Get next character
         let char = solutionCharacters[currentCharIndex]
         TextInjectionDebug.log(.inject, "DIAGNOSTIC #5: About to inject character[\(currentCharIndex)]: '\(char)' (remaining: \(solutionCharacters.count - currentCharIndex - 1))")
@@ -402,40 +515,40 @@ final class TextInjectionEngine {
     private func injectCharacterSynchronous(_ char: Character) -> Bool {
         TextInjectionDebug.log(.inject, "injectCharacterSynchronous() called for '\(char)'")
 
-        // Diagnostic #9: Create CGEventSource with .privateState (NOT .hidSystemState)
-        // Using .privateState avoids conflicts with the system HID state
-        guard let source = CGEventSource(stateID: .privateState) else {
-            TextInjectionDebug.log(.error, "DIAGNOSTIC #9 FAIL: Failed to create CGEventSource with .privateState")
+        // R1: Use persistent event source
+        guard let source = hidEventSource else {
+            TextInjectionDebug.log(.error, "No HID event source available")
             return false
         }
-        TextInjectionDebug.log(.inject, "DIAGNOSTIC #9 PASS: CGEventSource created with .privateState")
 
         var success = false
 
-        // Handle special characters
+        // Handle special keys
         if char == "\n" || char == "\r" {
             TextInjectionDebug.log(.inject, "Injecting RETURN key")
-            success = injectVirtualKey(kVK_Return, source: source)
+            success = injectVirtualKey(kVK_Return, shift: false, unicodeChar: nil, source: source)
         } else if char == "\t" {
             TextInjectionDebug.log(.inject, "Injecting TAB key")
-            success = injectVirtualKey(kVK_Tab, source: source)
+            success = injectVirtualKey(kVK_Tab, shift: false, unicodeChar: nil, source: source)
         } else if char == " " {
             TextInjectionDebug.log(.inject, "Injecting SPACE key")
-            success = injectVirtualKey(kVK_Space, source: source)
+            success = injectVirtualKey(kVK_Space, shift: false, unicodeChar: " ", source: source)
+        } else if let (keyCode, needsShift) = lookupVirtualKey(for: char) {
+            // Mapped character with known virtual key
+            TextInjectionDebug.log(.inject, "Injecting '\(char)' via virtualKey \(keyCode), shift=\(needsShift)")
+            success = injectMappedCharacter(char, keyCode: keyCode, shift: needsShift, source: source)
         } else {
-            // Regular character via Unicode
-            TextInjectionDebug.log(.inject, "Injecting Unicode character: '\(char)'")
-            success = injectUnicodeCharacter(char, source: source)
+            // Unicode-only fallback for emojis, accented chars, CJK, etc.
+            TextInjectionDebug.log(.inject, "Injecting Unicode character (no virtual key): '\(char)'")
+            success = injectUnicodeOnlyCharacter(char, source: source)
         }
 
-        // Diagnostic #12: Check adaptive delay is not too high
+        // Adaptive delay check
         if currentDelayMicroseconds > 15_000 {
-            TextInjectionDebug.log(.error, "DIAGNOSTIC #12 WARNING: Delay is \(currentDelayMicroseconds)μs which is too high!")
-            currentDelayMicroseconds = 10_000  // Reset to reasonable value
+            TextInjectionDebug.log(.error, "Delay too high (\(currentDelayMicroseconds)us), resetting to 10000")
+            currentDelayMicroseconds = 10_000
         }
 
-        // Apply minimal delay AFTER injection (not blocking the callback too long)
-        // Use a very short delay to allow system to process the event
         usleep(currentDelayMicroseconds)
         lastInjectionTime = CFAbsoluteTimeGetCurrent()
 
@@ -443,60 +556,130 @@ final class TextInjectionEngine {
     }
 
     /// Inject a virtual key (for special keys like Return, Tab, Space)
-    private func injectVirtualKey(_ keyCode: Int, source: CGEventSource) -> Bool {
-        // Create key down event
+    private func injectVirtualKey(_ keyCode: Int, shift: Bool, unicodeChar: Character?, source: CGEventSource) -> Bool {
         guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: true) else {
             TextInjectionDebug.log(.error, "Failed to create keyDown event for virtualKey \(keyCode)")
             return false
         }
-
-        // Create key up event
         guard let keyUp = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: false) else {
             TextInjectionDebug.log(.error, "Failed to create keyUp event for virtualKey \(keyCode)")
             return false
         }
 
-        // CRITICAL FIX: Post to .cgAnnotatedSessionEventTap to bypass our own event tap
-        // Using .cgSessionEventTap causes infinite loop (our tap catches its own events)
-        // .cgAnnotatedSessionEventTap bypasses event taps and goes directly to the target app
-        keyDown.post(tap: .cgAnnotatedSessionEventTap)
-        keyUp.post(tap: .cgAnnotatedSessionEventTap)
+        // R2/R7: Set Shift on KeyDown if needed
+        if shift {
+            keyDown.flags = .maskShift
+        }
+        // R7: KeyUp ALWAYS clears all modifiers
+        keyUp.flags = []
 
-        TextInjectionDebug.log(.inject, "Posted virtualKey \(keyCode) to .cgAnnotatedSessionEventTap (bypass event tap)")
+        // R9: Unicode on BOTH events
+        if let char = unicodeChar {
+            var utf16 = Array(String(char).utf16)
+            keyDown.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: &utf16)
+            keyUp.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: &utf16)
+        }
+
+        // R8: Tag both events
+        keyDown.setIntegerValueField(.eventSourceUserData, value: Self.injectedEventTag)
+        keyUp.setIntegerValueField(.eventSourceUserData, value: Self.injectedEventTag)
+
+        // R5: Track pending KeyDown
+        pendingKeyDown = true
+        pendingKeyCode = CGKeyCode(keyCode)
+
+        // Post to HID level
+        keyDown.post(tap: .cghidEventTap)
+        keyUp.post(tap: .cghidEventTap)
+
+        // R5: Clear pending state
+        pendingKeyDown = false
+
+        TextInjectionDebug.log(.inject, "Posted virtualKey \(keyCode) to .cghidEventTap")
         return true
     }
 
-    /// Inject a Unicode character
-    /// Diagnostic #9: Uses proper Unicode string injection without conflicting virtualKey
-    private func injectUnicodeCharacter(_ char: Character, source: CGEventSource) -> Bool {
-        let charString = String(char)
-        var utf16Array = Array(charString.utf16)
-
-        TextInjectionDebug.log(.inject, "DIAGNOSTIC #9: Injecting Unicode, utf16 length=\(utf16Array.count)")
-
-        // Create key down event with a neutral virtual key
-        // Using kVK_ANSI_A (0) as base but immediately setting Unicode string
-        guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: true) else {
-            TextInjectionDebug.log(.error, "DIAGNOSTIC #9 FAIL: Failed to create keyDown event")
+    /// Inject a character that has a known virtual key code mapping
+    private func injectMappedCharacter(_ char: Character, keyCode: Int, shift: Bool, source: CGEventSource) -> Bool {
+        guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: true) else {
+            TextInjectionDebug.log(.error, "Failed to create keyDown event for '\(char)' (keyCode \(keyCode))")
+            return false
+        }
+        guard let keyUp = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: false) else {
+            TextInjectionDebug.log(.error, "Failed to create keyUp event for '\(char)'")
             return false
         }
 
-        // CRITICAL: Set the Unicode string BEFORE posting
-        keyDown.keyboardSetUnicodeString(stringLength: utf16Array.count, unicodeString: &utf16Array)
+        // R2/R7: Modifier handling
+        if shift {
+            keyDown.flags = .maskShift
+        }
+        keyUp.flags = []  // R7: Always clear on KeyUp
 
-        // Create key up event (no need for Unicode on key up)
-        guard let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: false) else {
-            TextInjectionDebug.log(.error, "Failed to create keyUp event")
+        // R9: Unicode on BOTH
+        var utf16 = Array(String(char).utf16)
+        keyDown.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: &utf16)
+        keyUp.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: &utf16)
+
+        // R8: Tag events
+        keyDown.setIntegerValueField(.eventSourceUserData, value: Self.injectedEventTag)
+        keyUp.setIntegerValueField(.eventSourceUserData, value: Self.injectedEventTag)
+
+        // R5: Track and post
+        pendingKeyDown = true
+        pendingKeyCode = CGKeyCode(keyCode)
+
+        keyDown.post(tap: .cghidEventTap)
+        keyUp.post(tap: .cghidEventTap)
+
+        pendingKeyDown = false
+
+        TextInjectionDebug.log(.inject, "Posted mapped char '\(char)' (key \(keyCode), shift=\(shift)) to .cghidEventTap")
+        return true
+    }
+
+    /// Fallback for characters without virtual key mapping (emojis, accented, CJK)
+    private func injectUnicodeOnlyCharacter(_ char: Character, source: CGEventSource) -> Bool {
+        var utf16 = Array(String(char).utf16)
+
+        TextInjectionDebug.log(.inject, "Unicode-only injection for '\(char)', utf16 length=\(utf16.count)")
+
+        // Use Space as neutral base key
+        let neutralKey = CGKeyCode(kVK_Space)
+
+        guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: neutralKey, keyDown: true) else {
+            TextInjectionDebug.log(.error, "Failed to create keyDown event for Unicode char")
+            return false
+        }
+        guard let keyUp = CGEvent(keyboardEventSource: source, virtualKey: neutralKey, keyDown: false) else {
+            TextInjectionDebug.log(.error, "Failed to create keyUp event for Unicode char")
             return false
         }
 
-        // CRITICAL FIX: Post to .cgAnnotatedSessionEventTap to bypass our own event tap
-        // Using .cgSessionEventTap causes infinite loop (our tap catches its own events)
-        // .cgAnnotatedSessionEventTap bypasses event taps and goes directly to the target app
-        keyDown.post(tap: .cgAnnotatedSessionEventTap)
-        keyUp.post(tap: .cgAnnotatedSessionEventTap)
+        // R9: Unicode on BOTH
+        keyDown.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: &utf16)
+        keyUp.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: &utf16)
 
-        TextInjectionDebug.log(.inject, "DIAGNOSTIC #9 PASS: Posted Unicode '\(char)' to .cgAnnotatedSessionEventTap (bypass event tap)")
+        // R7: Clear modifiers on KeyUp
+        keyUp.flags = []
+
+        // R8: Tag events
+        keyDown.setIntegerValueField(.eventSourceUserData, value: Self.injectedEventTag)
+        keyUp.setIntegerValueField(.eventSourceUserData, value: Self.injectedEventTag)
+
+        // R3: Do NOT manually override keycode - macOS handles it correctly
+        // (removed: setIntegerValueField(.keyboardEventKeycode, value: 0))
+
+        // R5: Track and post
+        pendingKeyDown = true
+        pendingKeyCode = neutralKey
+
+        keyDown.post(tap: .cghidEventTap)
+        keyUp.post(tap: .cghidEventTap)
+
+        pendingKeyDown = false
+
+        TextInjectionDebug.log(.inject, "Posted Unicode-only '\(char)' to .cghidEventTap (fallback mode)")
         return true
     }
 
@@ -526,6 +709,17 @@ final class TextInjectionEngine {
 
     private func emergencyStop() {
         TextInjectionDebug.log(.state, "🛑 Emergency stop initiated")
+
+        // R5: Release any pending KeyDown immediately to prevent stuck keys
+        if pendingKeyDown, let source = hidEventSource {
+            if let keyUp = CGEvent(keyboardEventSource: source, virtualKey: pendingKeyCode, keyDown: false) {
+                keyUp.flags = []
+                keyUp.setIntegerValueField(.eventSourceUserData, value: Self.injectedEventTag)
+                keyUp.post(tap: .cghidEventTap)
+                TextInjectionDebug.log(.state, "Released pending KeyUp during emergency stop")
+            }
+            pendingKeyDown = false
+        }
 
         // 1. Set flags immediately
         isActive = false
@@ -592,6 +786,17 @@ final class TextInjectionEngine {
     private func cleanup() {
         TextInjectionDebug.log(.cleanup, "Starting cleanup...")
 
+        // R5: Ensure no pending KeyDown remains unpaired
+        if pendingKeyDown, let source = hidEventSource {
+            if let keyUp = CGEvent(keyboardEventSource: source, virtualKey: pendingKeyCode, keyDown: false) {
+                keyUp.flags = []
+                keyUp.setIntegerValueField(.eventSourceUserData, value: Self.injectedEventTag)
+                keyUp.post(tap: .cghidEventTap)
+                TextInjectionDebug.log(.cleanup, "Released pending KeyUp for stuck key \(pendingKeyCode)")
+            }
+            pendingKeyDown = false
+        }
+
         // 1. Disable tap first (prevents new events)
         if let tap = eventTap {
             CGEvent.tapEnable(tap: tap, enable: false)
@@ -623,6 +828,9 @@ final class TextInjectionEngine {
         currentDelayMicroseconds = 8_000
         consecutiveDrops = 0
         lastInjectionTime = 0
+        hidEventSource = nil
+        pendingKeyDown = false
+        pendingKeyCode = 0
 
         // 5. Verify cleanup (Diagnostic #11)
         if eventTap != nil {
