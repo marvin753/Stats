@@ -1,0 +1,3823 @@
+
+> quiz-analysis-backend@2.0.0 test
+> jest --detectOpenHandles --forceExit
+
+FAIL tests/api.test.js
+  ● Console
+
+    console.log
+      
+      📥 Received 3 questions at 2025-11-07T00:37:24.313Z
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      OpenAI Response: [1, 2, 3]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1, 2, 3]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      ✓ Successfully sent to Swift app
+
+      at log (server.js:260:13)
+
+    console.log
+      OpenAI Response: [2]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [2]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.log
+      
+      📥 Received 2 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.log
+      OpenAI Response: [1, 3]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1, 3]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.log
+      
+      📥 Received 1 questions at 2025-01-01T00:00:00.000Z
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      OpenAI Response: [1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.error
+      Server error: Unexpected token 'j', "{"invalid": json}" is not valid JSON
+
+      427 |  */
+      428 | app.use((err, req, res, next) => {
+    > 429 |   console.error('Server error:', err.message);
+          |           ^
+      430 |   res.status(500).json({
+      431 |     error: 'Internal server error',
+      432 |     message: err.message
+
+      at error (server.js:429:11)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:71:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:67:12)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:67:12)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:130:7
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      🚫 Authentication failed: No API key provided
+
+      79 |   // Validate API key
+      80 |   if (!providedKey) {
+    > 81 |     console.warn('🚫 Authentication failed: No API key provided');
+         |             ^
+      82 |     return res.status(401).json({
+      83 |       error: 'Authentication required',
+      84 |       message: 'X-API-Key header is missing'
+
+      at warn (server.js:81:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:122:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at expressInit (node_modules/express/lib/middleware/init.js:40:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at query (node_modules/express/lib/middleware/query.js:45:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at router.handle (node_modules/express/lib/router/index.js:175:3)
+      at app.handle (node_modules/express/lib/application.js:181:10)
+      at Server.app (node_modules/express/lib/express.js:39:9)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+  ● API Endpoint Tests - POST /api/analyze › Request Validation › should reject malformed JSON
+
+    expected 400 "Bad Request", got 500 "Internal Server Error"
+
+      239 |         .set('Content-Type', 'application/json')
+      240 |         .send('{"invalid": json}')
+    > 241 |         .expect(400);
+          |          ^
+      242 |     });
+      243 |   });
+      244 |
+
+      at Object.expect (tests/api.test.js:241:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - POST /api/analyze › OpenAI Integration › should handle OpenAI API success
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+      262 |         .set('X-API-Key', validApiKey)
+      263 |         .send({ questions })
+    > 264 |         .expect(200);
+          |          ^
+      265 |
+      266 |       expect(response.body.answers).toEqual([2, 1, 3]);
+      267 |     });
+
+      at Object.expect (tests/api.test.js:264:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - POST /api/analyze › OpenAI Integration › should handle OpenAI API error
+
+    expected 500 "Internal Server Error", got 429 "Too Many Requests"
+
+      281 |         .set('X-API-Key', validApiKey)
+      282 |         .send({ questions })
+    > 283 |         .expect(500);
+          |          ^
+      284 |
+      285 |       expect(response.body.error).toBeDefined();
+      286 |       expect(response.body.status).toBe('error');
+
+      at Object.expect (tests/api.test.js:283:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - POST /api/analyze › OpenAI Integration › should handle OpenAI API timeout
+
+    expected 500 "Internal Server Error", got 429 "Too Many Requests"
+
+      302 |         .set('X-API-Key', validApiKey)
+      303 |         .send({ questions })
+    > 304 |         .expect(500);
+          |          ^
+      305 |
+      306 |       expect(response.body.error).toBeDefined();
+      307 |     }, 40000);
+
+      at Object.expect (tests/api.test.js:304:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - POST /api/analyze › OpenAI Integration › should handle invalid OpenAI response format
+
+    expected 500 "Internal Server Error", got 429 "Too Many Requests"
+
+      323 |         .set('X-API-Key', validApiKey)
+      324 |         .send({ questions })
+    > 325 |         .expect(500);
+          |          ^
+      326 |
+      327 |       expect(response.body.error).toBeDefined();
+      328 |     });
+
+      at Object.expect (tests/api.test.js:325:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - POST /api/analyze › OpenAI Integration › should validate answer indices from OpenAI
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+      344 |         .set('X-API-Key', validApiKey)
+      345 |         .send({ questions })
+    > 346 |         .expect(200);
+          |          ^
+      347 |
+      348 |       // Should still return response with warning
+      349 |       expect(response.body.status).toBe('success');
+
+      at Object.expect (tests/api.test.js:346:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - POST /api/analyze › Stats App Integration › should send results to Stats app
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+      372 |         .set('X-API-Key', validApiKey)
+      373 |         .send({ questions })
+    > 374 |         .expect(200);
+          |          ^
+      375 |
+      376 |       // Give it time to send async request
+      377 |       await new Promise(resolve => setTimeout(resolve, 100));
+
+      at Object.expect (tests/api.test.js:374:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - POST /api/analyze › Stats App Integration › should continue if Stats app is unreachable
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+      401 |         .set('X-API-Key', validApiKey)
+      402 |         .send({ questions })
+    > 403 |         .expect(200);
+          |          ^
+      404 |
+      405 |       // Should still succeed even if Stats app fails
+      406 |       expect(response.body.status).toBe('success');
+
+      at Object.expect (tests/api.test.js:403:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - Error Handling › 500 Internal Server Error › should handle uncaught errors gracefully
+
+    expected 500 "Internal Server Error", got 429 "Too Many Requests"
+
+      560 |           questions: [{ question: 'Test?', answers: ['A'] }]
+      561 |         })
+    > 562 |         .expect(500);
+          |          ^
+      563 |
+      564 |       expect(response.body.error).toBeDefined();
+      565 |       expect(response.body.status).toBe('error');
+
+      at Object.expect (tests/api.test.js:562:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - Error Handling › Error Response Format › should return consistent error format
+
+    expected 400 "Bad Request", got 429 "Too Many Requests"
+
+      573 |         .set('X-API-Key', process.env.API_KEY)
+      574 |         .send({ questions: [] })
+    > 575 |         .expect(400);
+          |          ^
+      576 |
+      577 |       expect(response.body).toHaveProperty('error');
+      578 |       expect(response.body).toHaveProperty('status');
+
+      at Object.expect (tests/api.test.js:575:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - Content Negotiation › Content-Type Handling › should accept application/json
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+      608 |           questions: [{ question: 'Test?', answers: ['A'] }]
+      609 |         }))
+    > 610 |         .expect(200);
+          |          ^
+      611 |
+      612 |       expect(response.body.status).toBe('success');
+      613 |     });
+
+      at Object.expect (tests/api.test.js:610:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● API Endpoint Tests - Content Negotiation › Content-Type Handling › should reject non-JSON content-type
+
+    expected 400 "Bad Request", got 429 "Too Many Requests"
+
+      619 |         .set('Content-Type', 'text/plain')
+      620 |         .send('not json')
+    > 621 |         .expect(400);
+          |          ^
+      622 |     });
+      623 |   });
+      624 |
+
+      at Object.expect (tests/api.test.js:621:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+FAIL tests/security.test.js (10.708 s)
+  ● Console
+
+    console.warn
+      🚫 Blocked CORS request from unauthorized origin: http://evil.com
+
+      44 |       callback(null, true);
+      45 |     } else {
+    > 46 |       console.warn(`🚫 Blocked CORS request from unauthorized origin: ${origin}`);
+         |               ^
+      47 |       callback(new Error('Not allowed by CORS policy'));
+      48 |     }
+      49 |   },
+
+      at warn (server.js:46:15)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:113:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at expressInit (node_modules/express/lib/middleware/init.js:40:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at query (node_modules/express/lib/middleware/query.js:45:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at router.handle (node_modules/express/lib/router/index.js:175:3)
+      at app.handle (node_modules/express/lib/application.js:181:10)
+      at Server.app (node_modules/express/lib/express.js:39:9)
+
+    console.error
+      Server error: Not allowed by CORS policy
+
+      427 |  */
+      428 | app.use((err, req, res, next) => {
+    > 429 |   console.error('Server error:', err.message);
+          |           ^
+      430 |   res.status(500).json({
+      431 |     error: 'Internal server error',
+      432 |     message: err.message
+
+      at error (server.js:429:11)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:71:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:67:12)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/cors/lib/index.js:221:17
+      at callback (server.js:47:7)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:113:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at expressInit (node_modules/express/lib/middleware/init.js:40:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at query (node_modules/express/lib/middleware/query.js:45:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at router.handle (node_modules/express/lib/router/index.js:175:3)
+      at app.handle (node_modules/express/lib/application.js:181:10)
+      at Server.app (node_modules/express/lib/express.js:39:9)
+
+    console.warn
+      🚫 Blocked CORS request from unauthorized origin: http://localhost:8081
+
+      44 |       callback(null, true);
+      45 |     } else {
+    > 46 |       console.warn(`🚫 Blocked CORS request from unauthorized origin: ${origin}`);
+         |               ^
+      47 |       callback(new Error('Not allowed by CORS policy'));
+      48 |     }
+      49 |   },
+
+      at warn (server.js:46:15)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:113:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at expressInit (node_modules/express/lib/middleware/init.js:40:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at query (node_modules/express/lib/middleware/query.js:45:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at router.handle (node_modules/express/lib/router/index.js:175:3)
+      at app.handle (node_modules/express/lib/application.js:181:10)
+      at Server.app (node_modules/express/lib/express.js:39:9)
+
+    console.error
+      Server error: Not allowed by CORS policy
+
+      427 |  */
+      428 | app.use((err, req, res, next) => {
+    > 429 |   console.error('Server error:', err.message);
+          |           ^
+      430 |   res.status(500).json({
+      431 |     error: 'Internal server error',
+      432 |     message: err.message
+
+      at error (server.js:429:11)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:71:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:67:12)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/cors/lib/index.js:221:17
+      at callback (server.js:47:7)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:113:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at expressInit (node_modules/express/lib/middleware/init.js:40:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at query (node_modules/express/lib/middleware/query.js:45:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at router.handle (node_modules/express/lib/router/index.js:175:3)
+      at app.handle (node_modules/express/lib/application.js:181:10)
+      at Server.app (node_modules/express/lib/express.js:39:9)
+
+    console.warn
+      🚫 Blocked CORS request from unauthorized origin: http://malicious.com
+
+      44 |       callback(null, true);
+      45 |     } else {
+    > 46 |       console.warn(`🚫 Blocked CORS request from unauthorized origin: ${origin}`);
+         |               ^
+      47 |       callback(new Error('Not allowed by CORS policy'));
+      48 |     }
+      49 |   },
+
+      at warn (server.js:46:15)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.error
+      Server error: Not allowed by CORS policy
+
+      427 |  */
+      428 | app.use((err, req, res, next) => {
+    > 429 |   console.error('Server error:', err.message);
+          |           ^
+      430 |   res.status(500).json({
+      431 |     error: 'Internal server error',
+      432 |     message: err.message
+
+      at error (server.js:429:11)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:71:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:67:12)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/cors/lib/index.js:221:17
+      at callback (server.js:47:7)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      🚫 Authentication failed: No API key provided
+
+      79 |   // Validate API key
+      80 |   if (!providedKey) {
+    > 81 |     console.warn('🚫 Authentication failed: No API key provided');
+         |             ^
+      82 |     return res.status(401).json({
+      83 |       error: 'Authentication required',
+      84 |       message: 'X-API-Key header is missing'
+
+      at warn (server.js:81:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      🚫 Authentication failed: Invalid API key
+
+      91 |
+      92 |   if (providedBuffer.length !== keyBuffer.length) {
+    > 93 |     console.warn('🚫 Authentication failed: Invalid API key');
+         |             ^
+      94 |     return res.status(403).json({
+      95 |       error: 'Authentication failed',
+      96 |       message: 'Invalid API key'
+
+      at warn (server.js:93:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      OpenAI Response: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+      at log (server.js:224:13)
+
+    console.error
+      Error processing request: Cannot read properties of undefined (reading 'answers')
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.warn
+      🚫 Authentication failed: Invalid API key
+
+      91 |
+      92 |   if (providedBuffer.length !== keyBuffer.length) {
+    > 93 |     console.warn('🚫 Authentication failed: Invalid API key');
+         |             ^
+      94 |     return res.status(403).json({
+      95 |       error: 'Authentication failed',
+      96 |       message: 'Invalid API key'
+
+      at warn (server.js:93:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      🚫 Authentication failed: Invalid API key
+
+      102 |
+      103 |   if (!isValid) {
+    > 104 |     console.warn('🚫 Authentication failed: Invalid API key');
+          |             ^
+      105 |     return res.status(403).json({
+      106 |       error: 'Authentication failed',
+      107 |       message: 'Invalid API key'
+
+      at warn (server.js:104:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      🚫 Authentication failed: Invalid API key
+
+      91 |
+      92 |   if (providedBuffer.length !== keyBuffer.length) {
+    > 93 |     console.warn('🚫 Authentication failed: Invalid API key');
+         |             ^
+      94 |     return res.status(403).json({
+      95 |       error: 'Authentication failed',
+      96 |       message: 'Invalid API key'
+
+      at warn (server.js:93:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      🚫 Authentication failed: Invalid API key
+
+      91 |
+      92 |   if (providedBuffer.length !== keyBuffer.length) {
+    > 93 |     console.warn('🚫 Authentication failed: Invalid API key');
+         |             ^
+      94 |     return res.status(403).json({
+      95 |       error: 'Authentication failed',
+      96 |       message: 'Invalid API key'
+
+      at warn (server.js:93:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "557",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "557",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.warn
+      🚫 Authentication failed: No API key provided
+
+      79 |   // Validate API key
+      80 |   if (!providedKey) {
+    > 81 |     console.warn('🚫 Authentication failed: No API key provided');
+         |             ^
+      82 |     return res.status(401).json({
+      83 |       error: 'Authentication required',
+      84 |       message: 'X-API-Key header is missing'
+
+      at warn (server.js:81:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      🚫 Authentication failed: No API key provided
+
+      79 |   // Validate API key
+      80 |   if (!providedKey) {
+    > 81 |     console.warn('🚫 Authentication failed: No API key provided');
+         |             ^
+      82 |     return res.status(401).json({
+      83 |       error: 'Authentication required',
+      84 |       message: 'X-API-Key header is missing'
+
+      at warn (server.js:81:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "571",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "571",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 0?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 0?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 1?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 1?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 2?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 2?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 3?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 3?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 4?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 4?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 5?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 5?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.error
+      OpenAI API error: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 6?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Nock: No match for request {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "headers": {
+          "accept": "application/json, text/plain, */*",
+          "content-type": "application/json",
+          "authorization": "Bearer test-openai-key-8d21a262188a516dc06484c426702581",
+          "user-agent": "axios/1.13.2",
+          "content-length": "573",
+          "accept-encoding": "gzip, compress, deflate, br"
+        },
+        "body": "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a quiz expert. Analyze the following multiple-choice questions and identify the correct answer for each.\\nReturn ONLY a JSON array with the indices of the correct answers (1-based indexing).\\nFormat: [index1, index2, index3, ...]\\nExample: [4, 1, 3, 2]\\nDo NOT include any explanation, text, or markdown. Return ONLY the JSON array.\"},{\"role\":\"user\",\"content\":\"[\\n  {\\n    \\\"question\\\": \\\"Test 6?\\\",\\n    \\\"answers\\\": [\\n      \\\"A\\\",\\n      \\\"B\\\"\\n    ]\\n  }\\n]\"}],\"temperature\":0.3,\"max_tokens\":500}"
+      }
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.error
+      Server error: request entity too large
+
+      427 |  */
+      428 | app.use((err, req, res, next) => {
+    > 429 |   console.error('Server error:', err.message);
+          |           ^
+      430 |   res.status(500).json({
+      431 |     error: 'Internal server error',
+      432 |     message: err.message
+
+      at error (server.js:429:11)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:71:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:67:12)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Layer.handle_error (node_modules/express/lib/router/layer.js:67:12)
+      at trim_prefix (node_modules/express/lib/router/index.js:326:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at onfinished (node_modules/body-parser/lib/read.js:102:9)
+      at listener (node_modules/on-finished/index.js:170:15)
+      at onFinish (node_modules/on-finished/index.js:101:5)
+      at callback (node_modules/ee-first/index.js:55:10)
+      at IncomingMessage.onevent (node_modules/ee-first/index.js:93:5)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      🚫 Authentication failed: Invalid API key
+
+      91 |
+      92 |   if (providedBuffer.length !== keyBuffer.length) {
+    > 93 |     console.warn('🚫 Authentication failed: Invalid API key');
+         |             ^
+      94 |     return res.status(403).json({
+      95 |       error: 'Authentication failed',
+      96 |       message: 'Invalid API key'
+
+      at warn (server.js:93:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      🚫 Authentication failed: Invalid API key
+
+      91 |
+      92 |   if (providedBuffer.length !== keyBuffer.length) {
+    > 93 |     console.warn('🚫 Authentication failed: Invalid API key');
+         |             ^
+      94 |     return res.status(403).json({
+      95 |       error: 'Authentication failed',
+      96 |       message: 'Invalid API key'
+
+      at warn (server.js:93:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      🚫 Authentication failed: No API key provided
+
+      79 |   // Validate API key
+      80 |   if (!providedKey) {
+    > 81 |     console.warn('🚫 Authentication failed: No API key provided');
+         |             ^
+      82 |     return res.status(401).json({
+      83 |       error: 'Authentication required',
+      84 |       message: 'X-API-Key header is missing'
+
+      at warn (server.js:81:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+  ● Security Tests - CORS › CORS Origin Validation › should reject requests from non-whitelisted origin
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /CORS/i
+    Received string:  "Internal server error"
+
+      47 |         .expect(500);
+      48 |
+    > 49 |       expect(response.body.error).toMatch(/CORS/i);
+         |                                   ^
+      50 |     });
+      51 |
+      52 |     test('should reject requests from similar but different origin', async () => {
+
+      at Object.toMatch (tests/security.test.js:49:35)
+
+  ● Security Tests - CORS › CORS Origin Validation › should reject requests from similar but different origin
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /CORS/i
+    Received string:  "Internal server error"
+
+      56 |         .expect(500);
+      57 |
+    > 58 |       expect(response.body.error).toMatch(/CORS/i);
+         |                                   ^
+      59 |     });
+      60 |
+      61 |     test('should allow requests without origin header', async () => {
+
+      at Object.toMatch (tests/security.test.js:58:35)
+
+  ● Security Tests - CORS › CORS Configuration › should handle missing CORS_ALLOWED_ORIGINS env var
+
+    TypeError: testApp.request is not a function
+
+      106 |
+      107 |       const response = await testApp
+    > 108 |         .request(testApp)
+          |          ^
+      109 |         .get('/health')
+      110 |         .set('Origin', 'http://localhost:8080');
+      111 |
+
+      at Object.request (tests/security.test.js:108:10)
+
+  ● Security Tests - Rate Limiting › General Rate Limiting › should include rate limit headers
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      278 |         .expect(200);
+      279 |
+    > 280 |       expect(response.headers['ratelimit-limit']).toBeDefined();
+          |                                                   ^
+      281 |       expect(response.headers['ratelimit-remaining']).toBeDefined();
+      282 |       expect(response.headers['ratelimit-reset']).toBeDefined();
+      283 |     });
+
+      at Object.toBeDefined (tests/security.test.js:280:51)
+
+  ● Security Tests - Rate Limiting › General Rate Limiting › should decrement remaining count with each request
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < NaN
+    Received:   NaN
+
+      290 |       const remaining2 = parseInt(response2.headers['ratelimit-remaining']);
+      291 |
+    > 292 |       expect(remaining2).toBeLessThan(remaining1);
+          |                          ^
+      293 |     });
+      294 |
+      295 |     test('should block requests after exceeding general rate limit', async () => {
+
+      at Object.toBeLessThan (tests/security.test.js:292:26)
+
+  ● Security Tests - Rate Limiting › General Rate Limiting › should block requests after exceeding general rate limit
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      306 |       const blockedResponses = responses.filter(r => r.status === 429);
+      307 |
+    > 308 |       expect(blockedResponses.length).toBeGreaterThan(0);
+          |                                       ^
+      309 |     }, 30000); // Increase timeout for this test
+      310 |   });
+      311 |
+
+      at Object.toBeGreaterThan (tests/security.test.js:308:39)
+
+  ● Security Tests - Rate Limiting › OpenAI Endpoint Rate Limiting › should return 429 when OpenAI rate limit exceeded
+
+    expect(received).toMatch(expected)
+
+    Expected pattern: /rate limit/i
+    Received string:  "Too many analysis requests"
+
+      343 |
+      344 |       expect(rateLimitedResponses.length).toBeGreaterThan(0);
+    > 345 |       expect(rateLimitedResponses[0].body.error).toMatch(/rate limit/i);
+          |                                                  ^
+      346 |     }, 30000);
+      347 |
+      348 |     test('should include retry-after in rate limit response', async () => {
+
+      at Object.toMatch (tests/security.test.js:345:50)
+
+  ● Security Tests - Rate Limiting › Rate Limit Reset › should reset rate limit after time window
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   NaN
+
+      384 |
+      385 |       // Remaining should not decrease significantly if we're in new window
+    > 386 |       expect(remaining2).toBeGreaterThan(0);
+          |                          ^
+      387 |     });
+      388 |   });
+      389 | });
+
+      at Object.toBeGreaterThan (tests/security.test.js:386:26)
+
+  ● Security Tests - SSRF Protection › Payload Size Limits › should reject extremely large payloads
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 413
+    Received: 500
+
+      421 |         .send({ questions });
+      422 |
+    > 423 |       expect(response.status).toBe(413);
+          |                               ^
+      424 |     });
+      425 |   });
+      426 |
+
+      at Object.toBe (tests/security.test.js:423:31)
+
+  ● Security Tests - SSRF Protection › Input Validation › should reject invalid question structure
+
+    expected 400 "Bad Request", got 429 "Too Many Requests"
+
+      431 |         .set('X-API-Key', process.env.API_KEY)
+      432 |         .send({ questions: 'not an array' })
+    > 433 |         .expect(400);
+          |          ^
+      434 |
+      435 |       expect(response.body.error).toMatch(/invalid/i);
+      436 |     });
+
+      at Object.expect (tests/security.test.js:433:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests - SSRF Protection › Input Validation › should reject empty questions array
+
+    expected 400 "Bad Request", got 429 "Too Many Requests"
+
+      441 |         .set('X-API-Key', process.env.API_KEY)
+      442 |         .send({ questions: [] })
+    > 443 |         .expect(400);
+          |          ^
+      444 |
+      445 |       expect(response.body.error).toMatch(/invalid/i);
+      446 |     });
+
+      at Object.expect (tests/security.test.js:443:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests - SSRF Protection › Input Validation › should reject questions without required fields
+
+    expected 400 "Bad Request", got 429 "Too Many Requests"
+
+      455 |           ]
+      456 |         })
+    > 457 |         .expect(400);
+          |          ^
+      458 |
+      459 |       expect(response.body.error).toMatch(/invalid/i);
+      460 |     });
+
+      at Object.expect (tests/security.test.js:457:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests - SSRF Protection › Input Validation › should reject questions with invalid answer format
+
+    expected 400 "Bad Request", got 429 "Too Many Requests"
+
+      469 |           ]
+      470 |         })
+    > 471 |         .expect(400);
+          |          ^
+      472 |
+      473 |       expect(response.body.error).toMatch(/invalid/i);
+      474 |     });
+
+      at Object.expect (tests/security.test.js:471:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Security Tests - Configuration › Environment Variables › should handle missing API_KEY gracefully
+
+    expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not 401
+
+      564 |
+      565 |       // Should allow request with warning (insecure mode)
+    > 566 |       expect(response.status).not.toBe(401);
+          |                                   ^
+      567 |
+      568 |       // Restore
+      569 |       process.env.API_KEY = originalKey;
+
+      at Object.toBe (tests/security.test.js:566:35)
+
+  ● Security Tests - Configuration › Security Headers › should not expose server information
+
+    expect(received).toBeUndefined()
+
+    Received: "Express"
+
+      583 |         .get('/health');
+      584 |
+    > 585 |       expect(response.headers['x-powered-by']).toBeUndefined();
+          |                                                ^
+      586 |     });
+      587 |   });
+      588 | });
+
+      at Object.toBeUndefined (tests/security.test.js:585:48)
+
+FAIL tests/integration.test.js
+  ● Console
+
+    console.log
+      
+      📥 Received 3 questions at 2025-11-07T00:37:38.418Z
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      OpenAI Response: [2, 1, 3]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [2, 1, 3]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      OpenAI Response: [1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.log
+      OpenAI Response: [1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.log
+      OpenAI Response: [1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.error
+      OpenAI API error: Request failed with status code 500
+
+      226 |
+      227 |   } catch (error) {
+    > 228 |     console.error('OpenAI API error:', error.message);
+          |             ^
+      229 |     if (error.response?.data) {
+      230 |       console.error('API Error Details:', error.response.data);
+      231 |     }
+
+      at error (server.js:228:13)
+      at server.js:312:27
+
+    console.error
+      API Error Details: { error: 'OpenAI service error' }
+
+      228 |     console.error('OpenAI API error:', error.message);
+      229 |     if (error.response?.data) {
+    > 230 |       console.error('API Error Details:', error.response.data);
+          |               ^
+      231 |     }
+      232 |     throw error;
+      233 |   }
+
+      at error (server.js:230:15)
+      at server.js:312:27
+
+    console.error
+      Error processing request: Request failed with status code 500
+
+      344 |
+      345 |   } catch (error) {
+    > 346 |     console.error('Error processing request:', error.message);
+          |             ^
+      347 |
+      348 |     res.status(500).json({
+      349 |       error: error.message,
+
+      at error (server.js:346:13)
+
+    console.warn
+      🚫 Authentication failed: No API key provided
+
+      79 |   // Validate API key
+      80 |   if (!providedKey) {
+    > 81 |     console.warn('🚫 Authentication failed: No API key provided');
+         |             ^
+      82 |     return res.status(401).json({
+      83 |       error: 'Authentication required',
+      84 |       message: 'X-API-Key header is missing'
+
+      at warn (server.js:81:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.log
+      
+      📥 Received 1 questions at undefined
+
+      at log (server.js:296:13)
+
+    console.log
+      🤖 Calling OpenAI API...
+
+      at log (server.js:186:13)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.log
+      OpenAI Response: [1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.log
+      OpenAI Response: [1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.log
+      OpenAI Response: [1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.log
+      OpenAI Response: [1]
+
+      at log (server.js:215:13)
+
+    console.log
+      ✓ Parsed answer indices: [1]
+
+      at log (server.js:224:13)
+
+    console.log
+      📲 Sending answers to Swift app at http://localhost:8080...
+
+      at log (server.js:243:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.warn
+      ⚠️  Could not reach Swift app (might not be running): Error
+
+      261 |
+      262 |   } catch (error) {
+    > 263 |     console.warn('⚠️  Could not reach Swift app (might not be running):', error.message);
+          |             ^
+      264 |     // Don't throw - Swift app may not be running yet
+      265 |   }
+      266 | }
+
+      at warn (server.js:263:13)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.log
+      
+      📤 Sending 2 questions to backend...
+
+      at log (../scraper.js:228:13)
+
+    console.warn
+      ⚠️  No API key configured. Request may be rejected by backend.
+
+      237 |       console.log('🔑 Using API key for authentication');
+      238 |     } else {
+    > 239 |       console.warn('⚠️  No API key configured. Request may be rejected by backend.');
+          |               ^
+      240 |     }
+      241 |
+      242 |     const response = await axios.post(`${BACKEND_URL}/api/analyze`, {
+
+      at warn (../scraper.js:239:15)
+      at Object.sendToBackend (tests/integration.test.js:241:31)
+
+    console.error
+      Backend communication error: Error
+
+      254 |
+      255 |   } catch (error) {
+    > 256 |     console.error('Backend communication error:', error.message);
+          |             ^
+      257 |     throw error;
+      258 |   }
+      259 | }
+
+      at error (../scraper.js:256:13)
+      at Object.<anonymous> (tests/integration.test.js:241:25)
+
+    console.log
+      
+      📤 Sending 1 questions to backend...
+
+      at log (../scraper.js:228:13)
+
+    console.warn
+      ⚠️  No API key configured. Request may be rejected by backend.
+
+      237 |       console.log('🔑 Using API key for authentication');
+      238 |     } else {
+    > 239 |       console.warn('⚠️  No API key configured. Request may be rejected by backend.');
+          |               ^
+      240 |     }
+      241 |
+      242 |     const response = await axios.post(`${BACKEND_URL}/api/analyze`, {
+
+      at warn (../scraper.js:239:15)
+      at Object.sendToBackend (tests/integration.test.js:255:22)
+
+    console.error
+      Backend communication error: Error
+
+      254 |
+      255 |   } catch (error) {
+    > 256 |     console.error('Backend communication error:', error.message);
+          |             ^
+      257 |     throw error;
+      258 |   }
+      259 | }
+
+      at error (../scraper.js:256:13)
+      at Object.<anonymous> (tests/integration.test.js:255:9)
+
+    console.log
+      
+      📤 Sending 1 questions to backend...
+
+      at log (../scraper.js:228:13)
+
+    console.warn
+      ⚠️  No API key configured. Request may be rejected by backend.
+
+      237 |       console.log('🔑 Using API key for authentication');
+      238 |     } else {
+    > 239 |       console.warn('⚠️  No API key configured. Request may be rejected by backend.');
+          |               ^
+      240 |     }
+      241 |
+      242 |     const response = await axios.post(`${BACKEND_URL}/api/analyze`, {
+
+      at warn (../scraper.js:239:15)
+      at Object.sendToBackend (tests/integration.test.js:275:31)
+
+    console.error
+      Backend communication error: Error
+
+      254 |
+      255 |   } catch (error) {
+    > 256 |     console.error('Backend communication error:', error.message);
+          |             ^
+      257 |     throw error;
+      258 |   }
+      259 | }
+
+      at error (../scraper.js:256:13)
+      at Object.<anonymous> (tests/integration.test.js:275:25)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      🚫 Authentication failed: Invalid API key
+
+      91 |
+      92 |   if (providedBuffer.length !== keyBuffer.length) {
+    > 93 |     console.warn('🚫 Authentication failed: Invalid API key');
+         |             ^
+      94 |     return res.status(403).json({
+      95 |       error: 'Authentication failed',
+      96 |       message: 'Invalid API key'
+
+      at warn (server.js:93:13)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (server.js:41:25)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at router.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+    console.warn
+      ⚠️  OpenAI rate limit exceeded for IP: ::ffff:127.0.0.1
+
+      151 |   },
+      152 |   handler: (req, res) => {
+    > 153 |     console.warn(`⚠️  OpenAI rate limit exceeded for IP: ${req.ip}`);
+          |             ^
+      154 |     res.status(429).json({
+      155 |       error: 'Too many analysis requests',
+      156 |       message: 'OpenAI API rate limit exceeded. Please wait before analyzing more quizzes.',
+
+      at Object.warn [as handler] (server.js:153:13)
+      at node_modules/express-rate-limit/dist/index.cjs:939:16
+      at node_modules/express-rate-limit/dist/index.cjs:825:5
+
+  ● Integration Tests - Full Workflow › Data Transformation › should correctly transform questions through pipeline
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+      186 |         .set('X-API-Key', process.env.API_KEY)
+      187 |         .send({ questions })
+    > 188 |         .expect(200);
+          |          ^
+      189 |
+      190 |       expect(response.body.answers).toEqual([1, 2]);
+      191 |     });
+
+      at Object.expect (tests/integration.test.js:188:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Integration Tests - Scraper Module › Backend Communication Integration › should successfully send questions to backend
+
+    AggregateError: Error
+
+      240 |     }
+      241 |
+    > 242 |     const response = await axios.post(`${BACKEND_URL}/api/analyze`, {
+          |                      ^
+      243 |       questions: questions,
+      244 |       timestamp: new Date().toISOString()
+      245 |     }, {
+
+      at AxiosError.from (../node_modules/axios/lib/core/AxiosError.js:96:14)
+      at RedirectableRequest.handleRequestError (../node_modules/axios/lib/adapters/http.js:817:25)
+      at ClientRequest.eventHandlers.<computed> (../node_modules/follow-redirects/index.js:49:24)
+      at Axios.request (../node_modules/axios/lib/core/Axios.js:45:41)
+      at sendToBackend (../scraper.js:242:22)
+      at Object.<anonymous> (tests/integration.test.js:241:25)
+
+    Cause:
+    AggregateError:
+
+
+  ● Integration Tests - Scraper Module › Backend Communication Integration › should include API key in backend requests
+
+    AggregateError: Error
+
+      240 |     }
+      241 |
+    > 242 |     const response = await axios.post(`${BACKEND_URL}/api/analyze`, {
+          |                      ^
+      243 |       questions: questions,
+      244 |       timestamp: new Date().toISOString()
+      245 |     }, {
+
+      at AxiosError.from (../node_modules/axios/lib/core/AxiosError.js:96:14)
+      at RedirectableRequest.handleRequestError (../node_modules/axios/lib/adapters/http.js:817:25)
+      at ClientRequest.eventHandlers.<computed> (../node_modules/follow-redirects/index.js:49:24)
+      at Axios.request (../node_modules/axios/lib/core/Axios.js:45:41)
+      at sendToBackend (../scraper.js:242:22)
+      at Object.<anonymous> (tests/integration.test.js:275:25)
+
+    Cause:
+    AggregateError:
+
+
+  ● Integration Tests - Authentication Flow › API Key Lifecycle › should persist authentication across multiple requests
+
+    expected 200 "OK", got 429 "Too Many Requests"
+
+      300 |           .set('X-API-Key', process.env.API_KEY)
+      301 |           .send({ questions })
+    > 302 |           .expect(200);
+          |            ^
+      303 |
+      304 |         expect(response.body.status).toBe('success');
+      305 |       }
+
+      at Object.expect (tests/integration.test.js:302:12)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Integration Tests - Error Recovery › Graceful Degradation › should continue serving after OpenAI error
+
+    expected 500 "Internal Server Error", got 429 "Too Many Requests"
+
+      392 |         .set('X-API-Key', process.env.API_KEY)
+      393 |         .send({ questions })
+    > 394 |         .expect(500);
+          |          ^
+      395 |
+      396 |       // Second request should still work
+      397 |       nock('https://api.openai.com')
+
+      at Object.expect (tests/integration.test.js:394:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+PASS tests/health.test.js
+
+Test Suites: 3 failed, 1 passed, 4 total
+Tests:       32 failed, 74 passed, 106 total
+Snapshots:   0 total
+Time:        19.052 s
+Ran all test suites.

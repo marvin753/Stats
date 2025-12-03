@@ -1,0 +1,214 @@
+# ========================================
+# Prometheus Alert Rules - Backend
+# Quiz Stats Animation System
+# ========================================
+
+groups:
+  - name: backend_alerts
+    interval: 30s
+    rules:
+      # ----------------------------------------
+      # Service Availability
+      # ----------------------------------------
+      - alert: BackendServiceDown
+        expr: up{job="backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: "Backend service is down"
+          description: "Backend service has been down for more than 2 minutes"
+
+      - alert: BackendHighErrorRate
+        expr: |
+          rate(http_requests_total{job="backend",status=~"5.."}[5m])
+          / rate(http_requests_total{job="backend"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High error rate detected"
+          description: "Backend error rate is above 5% for 5 minutes"
+
+      # ----------------------------------------
+      # Performance
+      # ----------------------------------------
+      - alert: BackendHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="backend"}[5m])
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High request latency"
+          description: "95th percentile latency is above 1 second"
+
+      - alert: OpenAITimeout
+        expr: |
+          rate(openai_request_failures_total{reason="timeout"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+          component: openai
+        annotations:
+          summary: "OpenAI API timeout rate is high"
+          description: "More than 10% of OpenAI requests are timing out"
+
+      # ----------------------------------------
+      # Resource Usage
+      # ----------------------------------------
+      - alert: BackendHighMemoryUsage
+        expr: |
+          container_memory_usage_bytes{container="backend"}
+          / container_spec_memory_limit_bytes{container="backend"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High memory usage"
+          description: "Backend memory usage is above 90%"
+
+      - alert: BackendHighCPUUsage
+        expr: |
+          rate(container_cpu_usage_seconds_total{container="backend"}[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High CPU usage"
+          description: "Backend CPU usage is above 80% for 10 minutes"
+
+      # ----------------------------------------
+      # Rate Limiting
+      # ----------------------------------------
+      - alert: RateLimitThresholdReached
+        expr: |
+          rate(rate_limit_exceeded_total{job="backend"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: info
+          service: backend
+        annotations:
+          summary: "Rate limit frequently exceeded"
+          description: "Rate limit is being exceeded more than 10 times per 5 minutes"
+
+      # ----------------------------------------
+      # WebSocket Connections
+      # ----------------------------------------
+      - alert: TooManyWebSocketConnections
+        expr: websocket_connections{job="backend"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High number of WebSocket connections"
+          description: "More than 1000 active WebSocket connections"
+
+      # ----------------------------------------
+      # OpenAI API
+      # ----------------------------------------
+      - alert: OpenAIAPIKeyIssue
+        expr: |
+          rate(openai_request_failures_total{reason="auth"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: backend
+          component: openai
+        annotations:
+          summary: "OpenAI API authentication failure"
+          description: "OpenAI API key might be invalid or expired"
+
+      - alert: HighOpenAICost
+        expr: |
+          increase(openai_tokens_used_total[1h]) > 100000
+        labels:
+          severity: warning
+          service: backend
+          component: openai
+        annotations:
+          summary: "High OpenAI token usage"
+          description: "More than 100K tokens used in the last hour"
+
+  # ----------------------------------------
+  # Redis Alerts
+  # ----------------------------------------
+  - name: redis_alerts
+    interval: 30s
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis service has been down for more than 2 minutes"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is above 90%"
+
+      - alert: RedisSlowQueries
+        expr: redis_slowlog_length > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis slow queries detected"
+          description: "More than 10 slow queries in the slow log"
+
+  # ----------------------------------------
+  # Nginx Alerts
+  # ----------------------------------------
+  - name: nginx_alerts
+    interval: 30s
+    rules:
+      - alert: NginxDown
+        expr: up{job="nginx"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: nginx
+        annotations:
+          summary: "Nginx is down"
+          description: "Nginx service has been down for more than 2 minutes"
+
+      - alert: NginxHighConnectionCount
+        expr: nginx_connections_active > 5000
+        for: 5m
+        labels:
+          severity: warning
+          service: nginx
+        annotations:
+          summary: "High number of active connections"
+          description: "More than 5000 active connections to Nginx"
+
+      - alert: NginxHighErrorRate
+        expr: |
+          rate(nginx_http_requests_total{status=~"5.."}[5m])
+          / rate(nginx_http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: nginx
+        annotations:
+          summary: "High 5xx error rate"
+          description: "Nginx 5xx error rate is above 5%"

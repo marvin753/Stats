@@ -1,30 +1,136 @@
-# Node modules
-node_modules/
-npm-debug.log
-yarn-error.log
+# ========================================
+# Git Ignore Rules
+# Quiz Stats Animation System
+# ========================================
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Environment
+# ----------------------------------------
+# Environment & Secrets
+# ----------------------------------------
 .env
 .env.local
 .env.*.local
+.env.production
+.env.ai-parser
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+credentials/
 
-# Build
+# ----------------------------------------
+# Node.js
+# ----------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm
+.yarn-integrity
+
+# ----------------------------------------
+# Logs
+# ----------------------------------------
+logs/
+*.log
+npm-debug.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ----------------------------------------
+# Testing & Coverage
+# ----------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+.jest/
+test-results/
+junit.xml
+
+# ----------------------------------------
+# Docker
+# ----------------------------------------
+docker-compose.override.yml
+
+# ----------------------------------------
+# IDE & Editors
+# ----------------------------------------
+# Allow VS Code workspace configuration (tasks, launch, settings)
+!.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/README.md
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+.project
+.settings/
+.classpath
+
+# ----------------------------------------
+# Build & Distribution
+# ----------------------------------------
 dist/
 build/
-.next/
+.cache/
+.parcel-cache/
 out/
+*.tgz
+.next/
 
+# ----------------------------------------
+# Temporary Files
+# ----------------------------------------
+tmp/
+temp/
+*.tmp
+.temp/
+
+# ----------------------------------------
+# OS Files
+# ----------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ----------------------------------------
+# Database
+# ----------------------------------------
+*.sqlite
+*.db
+data/
+backups/
+
+# ----------------------------------------
+# Monitoring & Metrics
+# ----------------------------------------
+grafana-data/
+prometheus-data/
+loki-data/
+
+# ----------------------------------------
+# SSL/TLS Certificates
+# ----------------------------------------
+nginx/ssl/*.key
+nginx/ssl/*.crt
+nginx/ssl/*.pem
+
+# ----------------------------------------
 # Dependencies
+# ----------------------------------------
 package-lock.json
 yarn.lock
-cloned-stats/
+
+# ----------------------------------------
+# Project Specific
+# ----------------------------------------
+# Stats Swift project is now tracked in git

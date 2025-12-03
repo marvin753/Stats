@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug Swift App",
+      "program": "${workspaceFolder}/build/Build/Products/Debug/Stats.app/Contents/MacOS/Stats",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build-swift",
+      "console": "internalConsole",
+      "stopOnEntry": false,
+      "sourceMap": {},
+      "initCommands": [
+        "settings set target.process.follow-fork-mode child"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Backend",
+      "program": "${workspaceFolder}/../backend/server.js",
+      "cwd": "${workspaceFolder}/../backend",
+      "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/../backend/.env",
+      "outputCapture": "std",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "Debug Full System",
+      "type": "compound",
+      "configurations": [
+        "Debug Backend",
+        "Debug Swift App"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "hidden": false,
+        "group": "Full System",
+        "order": 1
+      }
+    }
+  ]
+}

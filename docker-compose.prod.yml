@@ -1,0 +1,139 @@
+# ========================================
+# Docker Compose - Production Environment
+# Quiz Stats Animation System
+# ========================================
+
+version: '3.9'
+
+services:
+  # ========================================
+  # Backend API Service (Production)
+  # ========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: quiz-backend-prod
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
+      - STATS_APP_URL=${STATS_APP_URL}
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=warn
+      - RATE_LIMIT_WINDOW=900000
+      - RATE_LIMIT_MAX=100
+    volumes:
+      - backend-logs:/app/logs
+    networks:
+      - quiz-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    labels:
+      - "com.quiz-stats.service=backend"
+      - "com.quiz-stats.environment=production"
+
+  # ========================================
+  # Redis Cache Service (Production)
+  # ========================================
+  redis:
+    image: redis:7-alpine
+    container_name: quiz-redis-prod
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - quiz-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    labels:
+      - "com.quiz-stats.service=redis"
+      - "com.quiz-stats.environment=production"
+
+  # ========================================
+  # Nginx Reverse Proxy (Production)
+  # ========================================
+  nginx:
+    image: nginx:alpine
+    container_name: quiz-nginx-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    networks:
+      - quiz-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+    labels:
+      - "com.quiz-stats.service=nginx"
+      - "com.quiz-stats.environment=production"
+
+networks:
+  quiz-network:
+    driver: bridge
+
+volumes:
+  backend-logs:
+    driver: local
+  redis-data:
+    driver: local
+  nginx-logs:
+    driver: local
